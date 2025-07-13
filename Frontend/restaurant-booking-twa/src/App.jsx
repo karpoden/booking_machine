@@ -213,24 +213,30 @@ function App() {
             value={selectedTime}
             onChange={(e) => setSelectedTime(e.target.value)}
           >
-            {Array.from({length: 28}, (_, i) => {
+            {Array.from({length: 29}, (_, i) => {
               const hour = Math.floor(i / 2) + 12
               const minute = i % 2 === 0 ? '00' : '30'
-              if (hour >= 26) return null // до 2:00 следующего дня
+              if (hour >= 27) return null // до 02:30 следующего дня
               
               const displayHour = hour >= 24 ? hour - 24 : hour
               const time = `${displayHour.toString().padStart(2, '0')}:${minute}`
               
-              // Проверяем рабочие часы (12:00-02:00)
-              if (displayHour >= 4 && displayHour < 12) return null
+              const selectedDay = new Date(selectedDate).getDay()
+              const isWeekend = selectedDay === 0 || selectedDay === 6
+              
+              // Проверяем рабочие часы
+              if (!isWeekend && displayHour >= 1 && displayHour < 12) return null // будни: 12:00-00:00
+              if (isWeekend && displayHour >= 3 && displayHour < 12) return null // выходные: 12:00-02:00
               
               // Проверяем, не прошло ли время для сегодняшней даты
               const now = new Date()
               const selectedDateTime = new Date(`${selectedDate}T${time}`)
               if (selectedDate === now.toISOString().split('T')[0] && selectedDateTime < now) return null
               
-              return <option key={time} value={time}>{time}</option>
-            }).filter(Boolean)}
+              return { time, sortKey: hour >= 24 ? hour - 24 + 100 : hour }
+            }).filter(Boolean).sort((a, b) => a.sortKey - b.sortKey).map(item => 
+              <option key={item.time} value={item.time}>{item.time}</option>
+            )}
           </select>
           <select 
             className="time-filter" 
@@ -240,7 +246,6 @@ function App() {
             <option value={2}>2 часа</option>
             <option value={4}>4 часа</option>
             <option value={6}>6 часов</option>
-            <option value={8}>8 часов</option>
           </select>
         </div>
       </div>
@@ -365,14 +370,23 @@ function App() {
                 className="form-select"
               >
                 <option value={2}>2 часа</option>
-                <option value={4}>4 часа</option>
-                <option value={6}>6 часов</option>
-                <option value={8}>8 часов</option>
+                <option value={4} disabled={(() => {
+                  const selectedDay = new Date(selectedDate).getDay()
+                  const isWeekend = selectedDay === 0 || selectedDay === 6
+                  const endHour = parseInt(selectedTime.split(':')[0]) + 4
+                  return !isWeekend && endHour > 2
+                })()}>4 часа</option>
+                <option value={6} disabled={(() => {
+                  const selectedDay = new Date(selectedDate).getDay()
+                  const isWeekend = selectedDay === 0 || selectedDay === 6
+                  const endHour = parseInt(selectedTime.split(':')[0]) + 6
+                  return !isWeekend ? endHour > 2 : endHour > 4
+                })()}>6 часов</option>
               </select>
             </div>
             <button 
               className="modal-btn"
-              disabled={!bookingData.name || bookingData.phone.length < 18}
+              disabled={!bookingData.name || bookingData.phone.length < 12}
               onClick={submitBooking}
             >
               Подтвердить бронирование
