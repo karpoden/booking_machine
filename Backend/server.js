@@ -19,7 +19,12 @@ async function initData() {
         { id: 1, seats: 4 },
         { id: 2, seats: 2 },
         { id: 3, seats: 6 },
-        { id: 4, seats: 8 }
+        { id: 4, seats: 8 },
+        { id: 5, seats: 8 },
+        { id: 6, seats: 1 },
+        { id: 7, seats: 1 },
+        { id: 8, seats: 1 },
+        { id: 9, seats: 1 }
       ]
     });
     console.log('Столы добавлены в базу данных');
@@ -28,30 +33,72 @@ async function initData() {
 
 // API маршруты
 app.get('/api/tables', async (req, res) => {
+  const { date, time, duration = 2 } = req.query;
+  
   try {
-    const tables = await prisma.table.findMany();
-    res.json(tables);
+    const tables = await prisma.table.findMany({
+      include: {
+        bookings: {
+          where: {
+            bookingDate: date
+          }
+        }
+      }
+    });
+    
+    // Определяем статус каждого стола
+    const tablesWithStatus = tables.map(table => {
+      const hasConflict = table.bookings.some(booking => {
+        return timesOverlap(booking.bookingTime, 2, time, parseInt(duration));
+      });
+      
+      return {
+        id: table.id,
+        seats: table.seats,
+        status: hasConflict ? 'booked' : 'available'
+      };
+    });
+    
+    res.json(tablesWithStatus);
   } catch (error) {
+    console.error('Ошибка получения столов:', error);
     res.status(500).json({ error: 'Ошибка получения столов' });
   }
 });
 
+// Функция для проверки пересечения времени
+function timesOverlap(time1, duration1, time2, duration2) {
+  const [h1, m1] = time1.split(':').map(Number);
+  const [h2, m2] = time2.split(':').map(Number);
+  
+  const start1 = h1 * 60 + m1;
+  const end1 = start1 + duration1 * 60;
+  const start2 = h2 * 60 + m2;
+  const end2 = start2 + duration2 * 60;
+  
+  return start1 < end2 && start2 < end1;
+}
+
 app.post('/api/book', async (req, res) => {
-  const { table_id, booking_date, booking_time } = req.body;
+  const { table_id, booking_date, booking_time, duration = 2 } = req.body;
   
   try {
-    const table = await prisma.table.findUnique({
-      where: { id: parseInt(table_id) }
+    // Проверяем существующие бронирования для этого стола в указанную дату
+    const existingBookings = await prisma.booking.findMany({
+      where: {
+        tableId: parseInt(table_id),
+        bookingDate: booking_date
+      }
     });
     
-    if (table?.status === 'booked') {
-      return res.status(400).json({ error: 'Стол уже забронирован' });
+    // Проверяем пересечение времени
+    const hasConflict = existingBookings.some(booking => {
+      return timesOverlap(booking.bookingTime, 2, booking_time, parseInt(duration));
+    });
+    
+    if (hasConflict) {
+      return res.status(400).json({ error: 'Стол уже забронирован на это время' });
     }
-    
-    await prisma.table.update({
-      where: { id: parseInt(table_id) },
-      data: { status: 'booked' }
-    });
     
     await prisma.booking.create({
       data: {
@@ -69,15 +116,15 @@ app.post('/api/book', async (req, res) => {
 
 app.delete('/api/book/:table_id', async (req, res) => {
   const { table_id } = req.params;
+  const { date, time } = req.query;
   
   try {
-    await prisma.table.update({
-      where: { id: parseInt(table_id) },
-      data: { status: 'available' }
-    });
-    
     await prisma.booking.deleteMany({
-      where: { tableId: parseInt(table_id) }
+      where: { 
+        tableId: parseInt(table_id),
+        bookingDate: date,
+        bookingTime: time
+      }
     });
     
     res.json({ success: true, message: 'Бронирование отменено' });
