@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Table {
+  id       Int      @id
+  seats    Int
+  status   Status   @default(available)
+  bookings Booking[]
+}
+
+model Booking {
+  id           Int      @id @default(autoincrement())
+  tableId      Int
+  bookingDate  String
+  bookingTime  String
+  createdAt    DateTime @default(now())
+  table        Table    @relation(fields: [tableId], references: [id])
+}
+
+enum Status {
+  available
+  booked
+}
