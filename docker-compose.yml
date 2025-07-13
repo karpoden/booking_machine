@@ -15,7 +15,7 @@ services:
     build: ./Frontend/restaurant-booking-twa
     ports:
       - "8080:80"
-      - "8443:443"
+      - "8444:443"
     volumes:
       - ./ssl/booking:/etc/nginx/ssl/booking:ro
     depends_on:
