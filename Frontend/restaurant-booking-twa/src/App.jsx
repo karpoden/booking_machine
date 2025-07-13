@@ -179,20 +179,14 @@ function App() {
             time: selectedTime,
             timestamp: new Date().toISOString()
           }))
-          window.Telegram.WebApp.showAlert(`Стол №${selectedTable} успешно забронирован!`)
-        } else {
-          alert(`Стол №${selectedTable} успешно забронирован!`)
         }
+        alert(`Стол №${selectedTable} успешно забронирован!`)
       } else {
         throw new Error(result.error)
       }
     } catch (error) {
       const errorMsg = `Ошибка бронирования: ${error.message}`
-      if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.showAlert(errorMsg)
-      } else {
-        alert(errorMsg)
-      }
+      alert(errorMsg)
     }
   }
 

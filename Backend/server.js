@@ -59,7 +59,7 @@ app.get('/api/tables', async (req, res) => {
     // Определяем статус каждого стола
     const tablesWithStatus = tables.map(table => {
       const hasConflict = table.bookings.some(booking => {
-        return timesOverlap(booking.bookingTime, 2, time, parseInt(duration));
+        return timesOverlap(booking.bookingTime, booking.duration || 2, time, parseInt(duration));
       });
       
       return {
@@ -103,7 +103,7 @@ app.post('/api/book', async (req, res) => {
     
     // Проверяем пересечение времени
     const hasConflict = existingBookings.some(booking => {
-      return timesOverlap(booking.bookingTime, 2, booking_time, parseInt(duration));
+      return timesOverlap(booking.bookingTime, booking.duration || 2, booking_time, parseInt(duration));
     });
     
     if (hasConflict) {
@@ -115,6 +115,7 @@ app.post('/api/book', async (req, res) => {
         tableId: parseInt(table_id),
         bookingDate: booking_date,
         bookingTime: booking_time,
+        duration: parseInt(duration),
         customerName: customer_name,
         customerPhone: customer_phone
       }

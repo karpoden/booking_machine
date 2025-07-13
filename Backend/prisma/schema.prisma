@@ -19,6 +19,7 @@ model Booking {
   tableId      Int
   bookingDate  String
   bookingTime  String
+  duration     Int      @default(2)
   customerName String?
   customerPhone String?
   createdAt    DateTime @default(now())
