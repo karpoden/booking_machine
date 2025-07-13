@@ -4,7 +4,20 @@ import './App.css'
 function App() {
   const [tables, setTables] = useState({})
   const [hoveredTable, setHoveredTable] = useState(null)
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  const getInitialDate = () => {
+    const now = new Date()
+    const currentHour = now.getHours()
+    // Если сейчас между 00:00 и 12:00, показываем сегодня
+    // Если после 23:30, показываем завтра
+    if (currentHour >= 23 && now.getMinutes() >= 30) {
+      const tomorrow = new Date(now)
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      return tomorrow.toISOString().split('T')[0]
+    }
+    return now.toISOString().split('T')[0]
+  }
+  
+  const [selectedDate, setSelectedDate] = useState(getInitialDate())
   const [selectedTime, setSelectedTime] = useState('18:00')
   const [selectedDuration, setSelectedDuration] = useState(2)
   const [showRules, setShowRules] = useState(false)
@@ -29,7 +42,13 @@ function App() {
   const fetchTables = async () => {
     try {
       const response = await fetch(`/api/tables?date=${selectedDate}&time=${selectedTime}&duration=${selectedDuration}`)
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
       const data = await response.json()
+      if (!Array.isArray(data)) {
+        throw new Error('API returned non-array data')
+      }
       const tablesData = {}
       data.forEach(table => {
         tablesData[table.id] = {
@@ -194,16 +213,21 @@ function App() {
             value={selectedTime}
             onChange={(e) => setSelectedTime(e.target.value)}
           >
-            {Array.from({length: 24}, (_, i) => {
-              const hour = Math.floor(i / 2) + 10
+            {Array.from({length: 28}, (_, i) => {
+              const hour = Math.floor(i / 2) + 12
               const minute = i % 2 === 0 ? '00' : '30'
-              if (hour >= 22) return null
-              const time = `${hour.toString().padStart(2, '0')}:${minute}`
+              if (hour >= 26) return null // до 2:00 следующего дня
+              
+              const displayHour = hour >= 24 ? hour - 24 : hour
+              const time = `${displayHour.toString().padStart(2, '0')}:${minute}`
+              
+              // Проверяем рабочие часы (12:00-02:00)
+              if (displayHour >= 4 && displayHour < 12) return null
               
               // Проверяем, не прошло ли время для сегодняшней даты
               const now = new Date()
               const selectedDateTime = new Date(`${selectedDate}T${time}`)
-              if (selectedDateTime < now) return null
+              if (selectedDate === now.toISOString().split('T')[0] && selectedDateTime < now) return null
               
               return <option key={time} value={time}>{time}</option>
             }).filter(Boolean)}
@@ -221,7 +245,7 @@ function App() {
         </div>
       </div>
       <div className="restaurant-photo">
-        <img src="ChatGPT Image 13 июля 2025 г., 11_14_49.png" alt="План ресторана" className="restaurant-image" />
+        <img src="/restaurant-plan.png" alt="План ресторана" className="restaurant-image" />
         {Object.entries(tables).map(([tableNumber, table]) => (
           <div 
             key={tableNumber} 
