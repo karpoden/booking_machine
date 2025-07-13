@@ -22,6 +22,7 @@ model Booking {
   duration     Int      @default(2)
   customerName String?
   customerPhone String?
+  telegramId   String?
   createdAt    DateTime @default(now())
   table        Table    @relation(fields: [tableId], references: [id])
 }

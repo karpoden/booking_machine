@@ -117,7 +117,8 @@ app.post('/api/book', async (req, res) => {
         bookingTime: booking_time,
         duration: parseInt(duration),
         customerName: customer_name,
-        customerPhone: customer_phone
+        customerPhone: customer_phone,
+        telegramId: req.body.telegram_id // Добавляем Telegram ID если передан
       }
     });
     
@@ -132,11 +133,37 @@ app.post('/api/book', async (req, res) => {
   }
 });
 
+app.put('/api/book/:booking_id', async (req, res) => {
+  const { booking_id } = req.params;
+  const { tableId } = req.body;
+  
+  try {
+    const updatedBooking = await prisma.booking.update({
+      where: { id: parseInt(booking_id) },
+      data: { tableId: parseInt(tableId) }
+    });
+    
+    res.json({ success: true, booking: updatedBooking });
+  } catch (error) {
+    res.status(500).json({ error: 'Ошибка обновления бронирования' });
+  }
+});
+
 app.delete('/api/book/:table_id', async (req, res) => {
   const { table_id } = req.params;
   const { date, time } = req.query;
   
   try {
+    // Сначала получаем данные о бронировании
+    const booking = await prisma.booking.findFirst({
+      where: { 
+        tableId: parseInt(table_id),
+        bookingDate: date,
+        bookingTime: time
+      }
+    });
+    
+    // Удаляем бронирование
     await prisma.booking.deleteMany({
       where: { 
         tableId: parseInt(table_id),
@@ -145,7 +172,7 @@ app.delete('/api/book/:table_id', async (req, res) => {
       }
     });
     
-    res.json({ success: true, message: 'Бронирование отменено' });
+    res.json({ success: true, message: 'Бронирование отменено', booking });
   } catch (error) {
     res.status(500).json({ error: 'Ошибка отмены бронирования' });
   }
@@ -163,6 +190,26 @@ app.get('/api/bookings', async (req, res) => {
   } catch (error) {
     console.error('Ошибка получения бронирований:', error);
     res.status(500).json({ error: 'Ошибка получения бронирований' });
+  }
+});
+
+app.get('/api/user-bookings/:userId', async (req, res) => {
+  const { userId } = req.params;
+  
+  try {
+    const bookings = await prisma.booking.findMany({
+      where: {
+        telegramId: userId
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+    
+    res.json(bookings);
+  } catch (error) {
+    console.error('Ошибка получения бронирований пользователя:', error);
+    res.status(500).json({ error: 'Ошибка получения бронирований пользователя' });
   }
 });
 
