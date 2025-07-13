@@ -16,9 +16,27 @@ function App() {
     }
     return now.toISOString().split('T')[0]
   }
+
+  const getInitialTime = () => {
+    const now = new Date()
+    const currentHour = now.getHours()
+    const currentMinute = now.getMinutes()
+    
+    // Если сейчас рабочее время, устанавливаем ближайшее доступное время
+    if (currentHour >= 12 && currentHour < 24) {
+      const nextHalfHour = currentMinute < 30 ? 30 : 60
+      const nextHour = currentMinute < 30 ? currentHour : currentHour + 1
+      
+      if (nextHour < 24) {
+        return `${nextHour.toString().padStart(2, '0')}:${nextHalfHour === 30 ? '30' : '00'}`
+      }
+    }
+    
+    return '18:00'
+  }
   
   const [selectedDate, setSelectedDate] = useState(getInitialDate())
-  const [selectedTime, setSelectedTime] = useState('18:00')
+  const [selectedTime, setSelectedTime] = useState(getInitialTime())
   const [selectedDuration, setSelectedDuration] = useState(2)
   const [showRules, setShowRules] = useState(false)
   const [showBookingForm, setShowBookingForm] = useState(false)
@@ -159,7 +177,8 @@ function App() {
           booking_time: selectedTime,
           duration: bookingData.duration,
           customer_name: bookingData.name,
-          customer_phone: bookingData.phone
+          customer_phone: bookingData.phone,
+          telegram_id: window.Telegram?.WebApp?.initDataUnsafe?.user?.id?.toString()
         })
       })
       

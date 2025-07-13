@@ -27,9 +27,11 @@ services:
   bot-user:
     build: ./Bot_User
     environment:
-      - BOT_TOKEN=${USER_BOT_TOKEN}
+      - USER_BOT_TOKEN=${USER_BOT_TOKEN}
       - WEBAPP_URL=https://bookingminiapp.ru
       - API_URL=http://backend:3000
+    ports:
+      - "3001:3001"
     depends_on:
       - backend
     restart: unless-stopped
@@ -39,7 +41,7 @@ services:
   bot-admin:
     build: ./Bot_Admin
     environment:
-      - BOT_TOKEN=${ADMIN_BOT_TOKEN}
+      - ADMIN_BOT_TOKEN=${ADMIN_BOT_TOKEN}
       - API_URL=http://backend:3000
     depends_on:
       - backend
