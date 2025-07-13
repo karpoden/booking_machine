@@ -233,7 +233,7 @@ function App() {
               const selectedDateTime = new Date(`${selectedDate}T${time}`)
               if (selectedDate === now.toISOString().split('T')[0] && selectedDateTime < now) return null
               
-              return { time, sortKey: hour >= 24 ? hour - 24 + 100 : hour }
+              return { time, sortKey: displayHour === 0 ? -1 : (displayHour === 1 ? -0.5 : hour) }
             }).filter(Boolean).sort((a, b) => a.sortKey - b.sortKey).map(item => 
               <option key={item.time} value={item.time}>{item.time}</option>
             )}
@@ -373,14 +373,30 @@ function App() {
                 <option value={4} disabled={(() => {
                   const selectedDay = new Date(selectedDate).getDay()
                   const isWeekend = selectedDay === 0 || selectedDay === 6
-                  const endHour = parseInt(selectedTime.split(':')[0]) + 4
-                  return !isWeekend && endHour > 2
+                  const startHour = parseInt(selectedTime.split(':')[0])
+                  const endHour = startHour + 4
+                  
+                  if (!isWeekend) {
+                    // Будни: работаем до 2:00
+                    return startHour >= 22 || (startHour < 12 && endHour > 2)
+                  } else {
+                    // Выходные: работаем до 4:00
+                    return startHour >= 24 || (startHour < 12 && endHour > 4)
+                  }
                 })()}>4 часа</option>
                 <option value={6} disabled={(() => {
                   const selectedDay = new Date(selectedDate).getDay()
                   const isWeekend = selectedDay === 0 || selectedDay === 6
-                  const endHour = parseInt(selectedTime.split(':')[0]) + 6
-                  return !isWeekend ? endHour > 2 : endHour > 4
+                  const startHour = parseInt(selectedTime.split(':')[0])
+                  const endHour = startHour + 6
+                  
+                  if (!isWeekend) {
+                    // Будни: работаем до 2:00
+                    return startHour >= 20 || (startHour < 12 && endHour > 2)
+                  } else {
+                    // Выходные: работаем до 4:00
+                    return startHour >= 22 || (startHour < 12 && endHour > 4)
+                  }
                 })()}>6 часов</option>
               </select>
             </div>
