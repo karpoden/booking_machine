@@ -18,12 +18,14 @@ docker-compose down
 
 # Получаем SSL сертификат
 echo "📜 Получение SSL сертификата..."
-sudo certbot certonly --standalone \
-    -d bookingminiapp.ru \
-    -d www.bookingminiapp.ru \
-    --email your-email@example.com \
-    --agree-tos \
-    --non-interactive
+echo "⚠️  Используйте DNS валидацию или получите сертификат вручную"
+echo "Команда для ручного получения:"
+echo "sudo certbot certonly --manual --preferred-challenges dns -d bookingminiapp.ru -d www.bookingminiapp.ru"
+echo "Или создайте самоподписанный сертификат для тестирования:"
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout ssl/privkey.pem \
+    -out ssl/fullchain.pem \
+    -subj "/C=US/ST=State/L=City/O=Organization/CN=bookingminiapp.ru"
 
 # Копируем сертификаты в папку проекта
 echo "📋 Копирование сертификатов..."

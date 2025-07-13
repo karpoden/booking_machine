@@ -14,8 +14,8 @@ services:
   frontend:
     build: ./Frontend/restaurant-booking-twa
     ports:
-      - "3080:80"
-      - "3443:443"
+      - "8080:80"
+      - "8443:443"
     volumes:
       - ./ssl:/etc/nginx/ssl:ro
     depends_on:
