@@ -19,6 +19,8 @@ model Booking {
   tableId      Int
   bookingDate  String
   bookingTime  String
+  customerName String?
+  customerPhone String?
   createdAt    DateTime @default(now())
   table        Table    @relation(fields: [tableId], references: [id])
 }

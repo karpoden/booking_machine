@@ -28,7 +28,7 @@ function App() {
 
   const fetchTables = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/tables?date=${selectedDate}&time=${selectedTime}&duration=${selectedDuration}`)
+      const response = await fetch(`/api/tables?date=${selectedDate}&time=${selectedTime}&duration=${selectedDuration}`)
       const data = await response.json()
       const tablesData = {}
       data.forEach(table => {
@@ -129,7 +129,7 @@ function App() {
 
   const submitBooking = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/book', {
+      const response = await fetch('/api/book', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
