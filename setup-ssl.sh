@@ -16,24 +16,22 @@ fi
 echo "🛑 Остановка контейнеров..."
 docker-compose down
 
-# Получаем SSL сертификат
-echo "📜 Получение SSL сертификата..."
-echo "⚠️  Используйте DNS валидацию или получите сертификат вручную"
-echo "Команда для ручного получения:"
-echo "sudo certbot certonly --manual --preferred-challenges dns -d bookingminiapp.ru -d www.bookingminiapp.ru"
-echo "Или создайте самоподписанный сертификат для тестирования:"
+# Создаем самоподписанный сертификат
+echo "📜 Создание самоподписанного сертификата..."
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -keyout ssl/privkey.pem \
     -out ssl/fullchain.pem \
     -subj "/C=US/ST=State/L=City/O=Organization/CN=bookingminiapp.ru"
 
-# Копируем сертификаты в папку проекта
-echo "📋 Копирование сертификатов..."
-sudo cp /etc/letsencrypt/live/bookingminiapp.ru/fullchain.pem ssl/
-sudo cp /etc/letsencrypt/live/bookingminiapp.ru/privkey.pem ssl/
+# Проверяем наличие Let's Encrypt сертификатов
+if [ -f "/etc/letsencrypt/live/bookingminiapp.ru/fullchain.pem" ]; then
+    echo "✅ Найдены Let's Encrypt сертификаты, заменяем..."
+    sudo cp /etc/letsencrypt/live/bookingminiapp.ru/fullchain.pem ssl/
+    sudo cp /etc/letsencrypt/live/bookingminiapp.ru/privkey.pem ssl/
+    sudo chown $USER:$USER ssl/*.pem
+fi
 
 # Устанавливаем правильные права доступа
-sudo chown $USER:$USER ssl/*.pem
 chmod 644 ssl/fullchain.pem
 chmod 600 ssl/privkey.pem
 
