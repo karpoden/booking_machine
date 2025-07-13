@@ -1,0 +1,16 @@
+-- CreateTable
+CREATE TABLE "Table" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "seats" INTEGER NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'available'
+);
+
+-- CreateTable
+CREATE TABLE "Booking" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "tableId" INTEGER NOT NULL,
+    "bookingDate" TEXT NOT NULL,
+    "bookingTime" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Booking_tableId_fkey" FOREIGN KEY ("tableId") REFERENCES "Table" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
