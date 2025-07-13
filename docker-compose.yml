@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./Backend
+    environment:
+      - DATABASE_URL=file:./dev.db
+    volumes:
+      - ./Backend/prisma/dev.db:/app/prisma/dev.db
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  frontend:
+    build: ./Frontend/restaurant-booking-twa
+    ports:
+      - "8080:80"
+      - "8444:443"
+    volumes:
+      - ./ssl/booking:/etc/nginx/ssl/booking:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  bot-user:
+    build: ./Bot_User
+    environment:
+      - BOT_TOKEN=${USER_BOT_TOKEN}
+      - WEBAPP_URL=https://bookingminiapp.ru
+      - API_URL=http://backend:3000
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  bot-admin:
+    build: ./Bot_Admin
+    environment:
+      - BOT_TOKEN=${ADMIN_BOT_TOKEN}
+      - API_URL=http://backend:3000
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

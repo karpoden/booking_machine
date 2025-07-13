@@ -4,7 +4,20 @@ import './App.css'
 function App() {
   const [tables, setTables] = useState({})
   const [hoveredTable, setHoveredTable] = useState(null)
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  const getInitialDate = () => {
+    const now = new Date()
+    const currentHour = now.getHours()
+    // Если сейчас между 00:00 и 12:00, показываем сегодня
+    // Если после 23:30, показываем завтра
+    if (currentHour >= 23 && now.getMinutes() >= 30) {
+      const tomorrow = new Date(now)
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      return tomorrow.toISOString().split('T')[0]
+    }
+    return now.toISOString().split('T')[0]
+  }
+  
+  const [selectedDate, setSelectedDate] = useState(getInitialDate())
   const [selectedTime, setSelectedTime] = useState('18:00')
   const [selectedDuration, setSelectedDuration] = useState(2)
   const [showRules, setShowRules] = useState(false)
@@ -28,8 +41,14 @@ function App() {
 
   const fetchTables = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/tables?date=${selectedDate}&time=${selectedTime}&duration=${selectedDuration}`)
+      const response = await fetch(`/api/tables?date=${selectedDate}&time=${selectedTime}&duration=${selectedDuration}`)
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
       const data = await response.json()
+      if (!Array.isArray(data)) {
+        throw new Error('API returned non-array data')
+      }
       const tablesData = {}
       data.forEach(table => {
         tablesData[table.id] = {
@@ -129,7 +148,7 @@ function App() {
 
   const submitBooking = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/book', {
+      const response = await fetch('/api/book', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -194,19 +213,30 @@ function App() {
             value={selectedTime}
             onChange={(e) => setSelectedTime(e.target.value)}
           >
-            {Array.from({length: 24}, (_, i) => {
-              const hour = Math.floor(i / 2) + 10
+            {Array.from({length: 29}, (_, i) => {
+              const hour = Math.floor(i / 2) + 12
               const minute = i % 2 === 0 ? '00' : '30'
-              if (hour >= 22) return null
-              const time = `${hour.toString().padStart(2, '0')}:${minute}`
+              if (hour >= 27) return null // до 02:30 следующего дня
+              
+              const displayHour = hour >= 24 ? hour - 24 : hour
+              const time = `${displayHour.toString().padStart(2, '0')}:${minute}`
+              
+              const selectedDay = new Date(selectedDate).getDay()
+              const isWeekend = selectedDay === 0 || selectedDay === 6
+              
+              // Проверяем рабочие часы
+              if (!isWeekend && displayHour >= 1 && displayHour < 12) return null // будни: 12:00-00:00
+              if (isWeekend && displayHour >= 3 && displayHour < 12) return null // выходные: 12:00-02:00
               
               // Проверяем, не прошло ли время для сегодняшней даты
               const now = new Date()
               const selectedDateTime = new Date(`${selectedDate}T${time}`)
-              if (selectedDateTime < now) return null
+              if (selectedDate === now.toISOString().split('T')[0] && selectedDateTime < now) return null
               
-              return <option key={time} value={time}>{time}</option>
-            }).filter(Boolean)}
+              return { time, sortKey: displayHour === 0 ? -1 : (displayHour === 1 ? -0.5 : hour) }
+            }).filter(Boolean).sort((a, b) => a.sortKey - b.sortKey).map(item => 
+              <option key={item.time} value={item.time}>{item.time}</option>
+            )}
           </select>
           <select 
             className="time-filter" 
@@ -216,12 +246,11 @@ function App() {
             <option value={2}>2 часа</option>
             <option value={4}>4 часа</option>
             <option value={6}>6 часов</option>
-            <option value={8}>8 часов</option>
           </select>
         </div>
       </div>
       <div className="restaurant-photo">
-        <img src="ChatGPT Image 13 июля 2025 г., 11_14_49.png" alt="План ресторана" className="restaurant-image" />
+        <img src="/restaurant-plan.png" alt="План ресторана" className="restaurant-image" />
         {Object.entries(tables).map(([tableNumber, table]) => (
           <div 
             key={tableNumber} 
@@ -341,14 +370,39 @@ function App() {
                 className="form-select"
               >
                 <option value={2}>2 часа</option>
-                <option value={4}>4 часа</option>
-                <option value={6}>6 часов</option>
-                <option value={8}>8 часов</option>
+                <option value={4} disabled={(() => {
+                  const selectedDay = new Date(selectedDate).getDay()
+                  const isWeekend = selectedDay === 0 || selectedDay === 6
+                  const startHour = parseInt(selectedTime.split(':')[0])
+                  const endHour = startHour + 4
+                  
+                  if (!isWeekend) {
+                    // Будни: работаем до 2:00
+                    return startHour >= 22 || (startHour < 12 && endHour > 2)
+                  } else {
+                    // Выходные: работаем до 4:00
+                    return startHour >= 24 || (startHour < 12 && endHour > 4)
+                  }
+                })()}>4 часа</option>
+                <option value={6} disabled={(() => {
+                  const selectedDay = new Date(selectedDate).getDay()
+                  const isWeekend = selectedDay === 0 || selectedDay === 6
+                  const startHour = parseInt(selectedTime.split(':')[0])
+                  const endHour = startHour + 6
+                  
+                  if (!isWeekend) {
+                    // Будни: работаем до 2:00
+                    return startHour >= 20 || (startHour < 12 && endHour > 2)
+                  } else {
+                    // Выходные: работаем до 4:00
+                    return startHour >= 22 || (startHour < 12 && endHour > 4)
+                  }
+                })()}>6 часов</option>
               </select>
             </div>
             <button 
               className="modal-btn"
-              disabled={!bookingData.name || bookingData.phone.length < 18}
+              disabled={!bookingData.name || bookingData.phone.length < 12}
               onClick={submitBooking}
             >
               Подтвердить бронирование

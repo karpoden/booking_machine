@@ -3,6 +3,16 @@ const { PrismaClient } = require('@prisma/client');
 const cors = require('cors');
 require('dotenv').config();
 
+// Импортируем функцию уведомления из админского бота
+let sendBookingNotification;
+try {
+  const adminBot = require('../Bot_Admin/bot.js');
+  sendBookingNotification = adminBot.sendBookingNotification;
+} catch (error) {
+  console.log('Админский бот не запущен');
+  sendBookingNotification = () => {};
+}
+
 const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3000;
@@ -80,7 +90,7 @@ function timesOverlap(time1, duration1, time2, duration2) {
 }
 
 app.post('/api/book', async (req, res) => {
-  const { table_id, booking_date, booking_time, duration = 2 } = req.body;
+  const { table_id, booking_date, booking_time, duration = 2, customer_name, customer_phone } = req.body;
   
   try {
     // Проверяем существующие бронирования для этого стола в указанную дату
@@ -100,13 +110,20 @@ app.post('/api/book', async (req, res) => {
       return res.status(400).json({ error: 'Стол уже забронирован на это время' });
     }
     
-    await prisma.booking.create({
+    const newBooking = await prisma.booking.create({
       data: {
         tableId: parseInt(table_id),
         bookingDate: booking_date,
-        bookingTime: booking_time
+        bookingTime: booking_time,
+        customerName: customer_name,
+        customerPhone: customer_phone
       }
     });
+    
+    // Отправляем уведомление админу
+    if (sendBookingNotification) {
+      sendBookingNotification(newBooking);
+    }
     
     res.json({ success: true, message: 'Стол забронирован' });
   } catch (error) {
@@ -133,8 +150,51 @@ app.delete('/api/book/:table_id', async (req, res) => {
   }
 });
 
+app.get('/api/bookings', async (req, res) => {
+  try {
+    const bookings = await prisma.booking.findMany({
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+    
+    res.json(bookings);
+  } catch (error) {
+    console.error('Ошибка получения бронирований:', error);
+    res.status(500).json({ error: 'Ошибка получения бронирований' });
+  }
+});
+
+// Функция очистки старых бронирований
+async function cleanOldBookings() {
+  try {
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const dateString = twoDaysAgo.toISOString().split('T')[0];
+    
+    const deleted = await prisma.booking.deleteMany({
+      where: {
+        bookingDate: {
+          lt: dateString
+        }
+      }
+    });
+    
+    if (deleted.count > 0) {
+      console.log(`Удалено ${deleted.count} старых бронирований`);
+    }
+  } catch (error) {
+    console.error('Ошибка очистки старых бронирований:', error);
+  }
+}
+
+// Запуск очистки каждые 24 часа
+setInterval(cleanOldBookings, 24 * 60 * 60 * 1000);
+
 initData().then(() => {
   app.listen(PORT, () => {
     console.log(`Сервер запущен на порту ${PORT}`);
+    // Запускаем очистку при старте
+    cleanOldBookings();
   });
 });
