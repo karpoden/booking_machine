@@ -51,7 +51,10 @@ function App() {
   useEffect(() => {
     // Инициализация Telegram Web App
     if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.expand()
+      const tg = window.Telegram.WebApp
+      tg.ready()
+      tg.expand()
+      tg.enableClosingConfirmation()
     }
     fetchTables()
     loadTablePhotos()

@@ -144,6 +144,19 @@ async function getAllBookings() {
   }
 }
 
+// Функция для проверки пересечения времени
+function timesOverlap(time1, duration1, time2, duration2) {
+  const [h1, m1] = time1.split(':').map(Number);
+  const [h2, m2] = time2.split(':').map(Number);
+  
+  const start1 = h1 * 60 + m1;
+  const end1 = start1 + duration1 * 60;
+  const start2 = h2 * 60 + m2;
+  const end2 = start2 + duration2 * 60;
+  
+  return start1 < end2 && start2 < end1;
+}
+
 // Обработка callback кнопок
 bot.on('callback_query', async (query) => {
   const chatId = query.message.chat.id;
@@ -368,6 +381,20 @@ bot.on('callback_query', async (query) => {
       const booking = bookings.find(b => b.id == bookingId);
       
       if (booking) {
+        // Проверяем, свободен ли новый стол
+        const conflictBooking = bookings.find(b => 
+          b.id != bookingId && 
+          b.tableId === newTableId && 
+          b.bookingDate === booking.bookingDate &&
+          timesOverlap(b.bookingTime, b.duration || 2, booking.bookingTime, booking.duration || 2)
+        );
+        
+        if (conflictBooking) {
+          bot.sendMessage(chatId, `❌ Стол №${newTableId} уже забронирован на это время`);
+          userStates.delete(chatId);
+          return;
+        }
+        
         // Обновляем бронирование
         await axios.put(`${API_URL}/api/book/${bookingId}`, {
           tableId: newTableId
