@@ -44,11 +44,19 @@ bot.on('web_app_data', async (msg) => {
   const data = JSON.parse(msg.web_app.data);
   
   if (data.action === 'book_table') {
+    const keyboard = {
+      inline_keyboard: [
+        [{ text: '🏠 Главное меню', callback_data: 'main_menu' }]
+      ]
+    };
+    
     bot.sendMessage(chatId, 
-      `✅ Стол №${data.table} успешно забронирован!\n\n` +
+      `✅ Заявка на бронирование отправлена!\n\n` +
+      `🍽 Стол: №${data.table}\n` +
       `📅 Дата: ${data.date}\n` +
       `🕐 Время: ${data.time}\n\n` +
-      `Ждем вас в ресторане! 🎉`
+      `⏳ Ожидайте подтверждения от администратора...`,
+      { reply_markup: keyboard }
     );
   }
 });
@@ -58,13 +66,34 @@ bot.on('callback_query', async (query) => {
   const chatId = query.message.chat.id;
   const data = query.data;
   
+  if (data === 'main_menu') {
+    const keyboard = {
+      inline_keyboard: [
+        [{ text: '📅 Забронировать стол', web_app: { url: WEBAPP_URL } }],
+        [{ text: '📋 Мои бронирования', callback_data: 'my_bookings' }]
+      ]
+    };
+    
+    bot.sendMessage(chatId, 
+      '🍽 Добро пожаловать в систему бронирования столов!\n\n' +
+      'Выберите действие:', 
+      { reply_markup: keyboard }
+    );
+  }
+  
   if (data === 'my_bookings') {
     try {
       const response = await axios.get(`${API_URL}/api/user-bookings/${chatId}`);
       const bookings = response.data;
       
+      const keyboard = {
+        inline_keyboard: [
+          [{ text: '🏠 Главное меню', callback_data: 'main_menu' }]
+        ]
+      };
+      
       if (bookings.length === 0) {
-        bot.sendMessage(chatId, '📋 У вас нет активных бронирований.');
+        bot.sendMessage(chatId, '📋 У вас нет активных бронирований.', { reply_markup: keyboard });
       } else {
         let message = '📋 Ваши бронирования:\n\n';
         bookings.forEach((booking, index) => {
@@ -77,7 +106,7 @@ bot.on('callback_query', async (query) => {
           message += `\n`;
         });
         
-        bot.sendMessage(chatId, message);
+        bot.sendMessage(chatId, message, { reply_markup: keyboard });
       }
     } catch (error) {
       console.error('Ошибка получения бронирований:', error);
