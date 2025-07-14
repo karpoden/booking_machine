@@ -4,6 +4,18 @@ import './App.css'
 function App() {
   const [tables, setTables] = useState({})
   const [hoveredTable, setHoveredTable] = useState(null)
+  const [debugInfo, setDebugInfo] = useState('')
+  
+  // Отладочная информация
+  useEffect(() => {
+    const info = [
+      `User Agent: ${navigator.userAgent}`,
+      `Telegram: ${window.Telegram ? 'Доступен' : 'Недоступен'}`,
+      `WebApp: ${window.Telegram?.WebApp ? 'Доступен' : 'Недоступен'}`,
+      `Version: ${window.Telegram?.WebApp?.version || 'Неизвестно'}`
+    ]
+    setDebugInfo(info.join('\n'))
+  }, [])
   const getInitialDate = () => {
     const now = new Date()
     const currentHour = now.getHours()
@@ -49,15 +61,34 @@ function App() {
   const [touchEnd, setTouchEnd] = useState(null)
 
   useEffect(() => {
-    // Инициализация Telegram Web App
-    if (window.Telegram?.WebApp) {
-      const tg = window.Telegram.WebApp
-      tg.ready()
-      tg.expand()
-      tg.enableClosingConfirmation()
+    // Проверка и инициализация Telegram Web App
+    const initTelegram = () => {
+      if (window.Telegram?.WebApp) {
+        const tg = window.Telegram.WebApp
+        console.log('Telegram WebApp доступен:', tg.version)
+        tg.ready()
+        tg.expand()
+        if (tg.enableClosingConfirmation) {
+          tg.enableClosingConfirmation()
+        }
+      } else {
+        console.log('Telegram WebApp не доступен')
+      }
     }
+    
+    // Ожидаем загрузку Telegram API
+    if (document.readyState === 'complete') {
+      initTelegram()
+    } else {
+      window.addEventListener('load', initTelegram)
+    }
+    
     fetchTables()
     loadTablePhotos()
+    
+    return () => {
+      window.removeEventListener('load', initTelegram)
+    }
   }, [selectedDate, selectedTime, selectedDuration])
 
   const fetchTables = async () => {
@@ -194,15 +225,21 @@ function App() {
         fetchTables()
         
         if (window.Telegram?.WebApp) {
-          window.Telegram.WebApp.sendData(JSON.stringify({
-            action: 'book_table',
-            table: selectedTable,
-            date: selectedDate,
-            time: selectedTime,
-            timestamp: new Date().toISOString()
-          }))
+          try {
+            window.Telegram.WebApp.sendData(JSON.stringify({
+              action: 'book_table',
+              table: selectedTable,
+              date: selectedDate,
+              time: selectedTime,
+              timestamp: new Date().toISOString()
+            }))
+          } catch (error) {
+            console.error('Ошибка отправки данных в Telegram:', error)
+            alert(`Стол №${selectedTable} успешно забронирован!`)
+          }
+        } else {
+          alert(`Стол №${selectedTable} успешно забронирован!`)
         }
-        alert(`Стол №${selectedTable} успешно забронирован!`)
       } else {
         throw new Error(result.error)
       }
@@ -214,6 +251,11 @@ function App() {
 
   return (
     <div className="container">
+      {/* Отладочная информация (только для тестирования) */}
+      <div style={{fontSize: '10px', color: '#666', marginBottom: '10px', whiteSpace: 'pre-line'}}>
+        {debugInfo}
+      </div>
+      
       <div className="header">
         <h1>Бронирование столов</h1>
         <div className="filters">
