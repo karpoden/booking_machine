@@ -7,9 +7,15 @@ require('dotenv').config();
 // Функция для отправки уведомления админскому боту
 async function sendBookingNotification(booking) {
   try {
-    await axios.post('http://bot-admin:3002/notify', { booking });
+    console.log('Отправляю уведомление админскому боту:', booking.id);
+    const response = await axios.post('http://bot-admin:3002/notify', { booking });
+    console.log('Уведомление отправлено успешно:', response.status);
   } catch (error) {
-    console.log('Не удалось отправить уведомление админскому боту');
+    console.error('Ошибка отправки уведомления админскому боту:', error.message);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    }
   }
 }
 

@@ -11,8 +11,14 @@ const app = express();
 app.use(express.json());
 
 app.post('/notify', (req, res) => {
+  console.log('Получено уведомление о новом бронировании:', req.body);
   const { booking } = req.body;
-  sendBookingNotification(booking);
+  if (booking) {
+    sendBookingNotification(booking);
+    console.log('Уведомление отправлено админам');
+  } else {
+    console.error('Нет данных о бронировании в запросе');
+  }
   res.json({ success: true });
 });
 
