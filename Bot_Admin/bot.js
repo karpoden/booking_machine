@@ -134,6 +134,12 @@ bot.on('callback_query', async (query) => {
     if (bookings.length === 0) {
       bot.sendMessage(chatId, '📋 Нет активных бронирований.');
     } else {
+      const keyboard = {
+        inline_keyboard: [
+          [{ text: '🏠 Главное меню', callback_data: 'main_menu' }]
+        ]
+      };
+      
       let message = '📊 Все бронирования:\n\n';
       bookings.forEach((booking, index) => {
         message += `${index + 1}. 🍽 Стол №${booking.tableId}\n`;
@@ -142,7 +148,7 @@ bot.on('callback_query', async (query) => {
         message += `   👤 ${booking.customerName || 'не указано'}\n\n`;
       });
       
-      bot.sendMessage(chatId, message);
+      bot.sendMessage(chatId, message, { reply_markup: keyboard });
     }
   }
   
@@ -171,6 +177,12 @@ bot.on('callback_query', async (query) => {
     if (todayBookings.length === 0) {
       bot.sendMessage(chatId, '📅 На сегодня нет бронирований.');
     } else {
+      const keyboard = {
+        inline_keyboard: [
+          [{ text: '🏠 Главное меню', callback_data: 'main_menu' }]
+        ]
+      };
+      
       let message = '📅 Бронирования на сегодня:\n\n';
       todayBookings.forEach((booking, index) => {
         const isNextDay = booking.bookingDate === tomorrowStr;
@@ -180,7 +192,7 @@ bot.on('callback_query', async (query) => {
         message += `   👤 ${booking.customerName || 'не указано'}\n\n`;
       });
       
-      bot.sendMessage(chatId, message);
+      bot.sendMessage(chatId, message, { reply_markup: keyboard });
     }
   }
   
@@ -190,6 +202,23 @@ bot.on('callback_query', async (query) => {
   
   if (data === 'cancel_booking') {
     showTableButtons(chatId, 'cancel_booking');
+  }
+  
+  if (data === 'main_menu') {
+    const keyboard = {
+      inline_keyboard: [
+        [{ text: '📊 Все бронирования', callback_data: 'all_bookings' }],
+        [{ text: '📅 Бронирования на сегодня', callback_data: 'today_bookings' }],
+        [{ text: '➕ Добавить бронирование', callback_data: 'add_booking' }],
+        [{ text: '❌ Отменить бронирование', callback_data: 'cancel_booking' }]
+      ]
+    };
+    
+    bot.sendMessage(chatId, 
+      '👨‍💼 Панель администратора\n\n' +
+      'Выберите действие:', 
+      { reply_markup: keyboard }
+    );
   }
   
   // Обработка выбора стола для добавления
@@ -253,9 +282,20 @@ bot.on('callback_query', async (query) => {
         }
       }
       
-      bot.sendMessage(chatId, `✅ Бронирование отменено:\nСтол №${tableId}\n${date} в ${time}`);
+      const keyboard = {
+        inline_keyboard: [
+          [{ text: '🏠 Главное меню', callback_data: 'main_menu' }]
+        ]
+      };
+      
+      bot.sendMessage(chatId, `✅ Бронирование отменено:\nСтол №${tableId}\n${date} в ${time}`, { reply_markup: keyboard });
     } catch (error) {
-      bot.sendMessage(chatId, `❌ Ошибка: ${error.response?.data?.error || 'Не удалось отменить бронирование'}`);
+      const keyboard = {
+        inline_keyboard: [
+          [{ text: '🏠 Главное меню', callback_data: 'main_menu' }]
+        ]
+      };
+      bot.sendMessage(chatId, `❌ Ошибка: ${error.response?.data?.error || 'Не удалось отменить бронирование'}`, { reply_markup: keyboard });
     }
   }
   
@@ -396,9 +436,20 @@ bot.on('message', async (msg) => {
           customer_phone: state.phone
         });
         
-        bot.sendMessage(chatId, `✅ Бронирование добавлено:\nСтол №${state.tableId}\n${state.date} в ${state.time}\n${state.name} (${state.phone})`);
+        const keyboard = {
+          inline_keyboard: [
+            [{ text: '🏠 Главное меню', callback_data: 'main_menu' }]
+          ]
+        };
+        
+        bot.sendMessage(chatId, `✅ Бронирование добавлено:\nСтол №${state.tableId}\n${state.date} в ${state.time}\n${state.name} (${state.phone})`, { reply_markup: keyboard });
       } catch (error) {
-        bot.sendMessage(chatId, `❌ Ошибка: ${error.response?.data?.error || 'Не удалось добавить бронирование'}`);
+        const keyboard = {
+          inline_keyboard: [
+            [{ text: '🏠 Главное меню', callback_data: 'main_menu' }]
+          ]
+        };
+        bot.sendMessage(chatId, `❌ Ошибка: ${error.response?.data?.error || 'Не удалось добавить бронирование'}`, { reply_markup: keyboard });
       }
       
       userStates.delete(chatId);
