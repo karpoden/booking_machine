@@ -1,16 +1,16 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const cors = require('cors');
+const axios = require('axios');
 require('dotenv').config();
 
-// Импортируем функцию уведомления из админского бота
-let sendBookingNotification;
-try {
-  const adminBot = require('../Bot_Admin/bot.js');
-  sendBookingNotification = adminBot.sendBookingNotification;
-} catch (error) {
-  console.log('Админский бот не запущен');
-  sendBookingNotification = () => {};
+// Функция для отправки уведомления админскому боту
+async function sendBookingNotification(booking) {
+  try {
+    await axios.post('http://bot-admin:3002/notify', { booking });
+  } catch (error) {
+    console.log('Не удалось отправить уведомление админскому боту');
+  }
 }
 
 const app = express();
@@ -123,9 +123,7 @@ app.post('/api/book', async (req, res) => {
     });
     
     // Отправляем уведомление админу
-    if (sendBookingNotification) {
-      sendBookingNotification(newBooking);
-    }
+    await sendBookingNotification(newBooking);
     
     res.json({ success: true, message: 'Стол забронирован' });
   } catch (error) {

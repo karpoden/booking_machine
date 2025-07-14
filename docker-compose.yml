@@ -43,6 +43,8 @@ services:
     environment:
       - ADMIN_BOT_TOKEN=${ADMIN_BOT_TOKEN}
       - API_URL=http://backend:3000
+    ports:
+      - "3002:3002"
     depends_on:
       - backend
     restart: unless-stopped

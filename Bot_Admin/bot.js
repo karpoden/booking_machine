@@ -1,9 +1,24 @@
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
+const express = require('express');
 require('dotenv').config();
 
 const bot = new TelegramBot(process.env.ADMIN_BOT_TOKEN, { polling: true });
 const API_URL = 'http://backend:3000';
+
+// HTTP сервер для уведомлений
+const app = express();
+app.use(express.json());
+
+app.post('/notify', (req, res) => {
+  const { booking } = req.body;
+  sendBookingNotification(booking);
+  res.json({ success: true });
+});
+
+app.listen(3002, () => {
+  console.log('🔔 HTTP сервер для уведомлений запущен на порту 3002');
+});
 
 // Список подписанных админов
 const subscribedAdmins = new Set();
