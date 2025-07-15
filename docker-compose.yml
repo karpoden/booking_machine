@@ -15,9 +15,6 @@ services:
     build: ./Frontend/restaurant-booking-twa
     ports:
       - "8080:80"
-      - "8444:443"
-    volumes:
-      - ./ssl/booking:/etc/nginx/ssl/booking:ro
     depends_on:
       - backend
     restart: unless-stopped
@@ -28,7 +25,7 @@ services:
     build: ./Bot_User
     environment:
       - USER_BOT_TOKEN=${USER_BOT_TOKEN}
-      - WEBAPP_URL=https://bookingminiapp.ru
+      - WEBAPP_URL=https://app.bookingminiapp.ru
       - API_URL=http://backend:3000
     ports:
       - "3001:3001"
