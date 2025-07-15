@@ -8,11 +8,7 @@ if [ ! -f .env ]; then
     exit 1
 fi
 
-# Проверяем наличие SSL сертификатов
-if [ ! -f ssl/fullchain.pem ] || [ ! -f ssl/privkey.pem ]; then
-    echo "❌ SSL сертификаты не найдены. Запустите: ./setup-ssl.sh"
-    exit 1
-fi
+
 
 # Останавливаем старые контейнеры
 echo "🛑 Остановка старых контейнеров..."
@@ -28,8 +24,8 @@ sleep 5
 docker-compose exec -T backend npx prisma migrate deploy
 
 echo "✅ Деплой завершен!"
-echo "🌐 Сайт: https://bookingminiapp.ru"
+echo "🌐 Сайт: https://app.bookingminiapp.ru"
 echo "🤖 Боты запущены и готовы к работе"
 echo ""
 echo "📋 Настройте в @BotFather:"
-echo "Mini App URL: https://bookingminiapp.ru"
+echo "Mini App URL: https://app.bookingminiapp.ru"
