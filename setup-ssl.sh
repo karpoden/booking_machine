@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DOMAIN="bookingminiapp.ru"
+DOMAIN="appbookingmachine.ru"
 EMAIL="your-email@example.com"
 
 echo "🔒 Настройка SSL сертификатов для $DOMAIN..."

@@ -8,18 +8,18 @@ git pull origin main
 
 # Остановка сервисов
 echo "🛑 Остановка сервисов..."
-docker-compose down
+docker-compose -f docker-compose.prod.yml down
 
 # Пересборка и запуск
 echo "🔨 Пересборка контейнеров..."
-docker-compose up --build -d
+docker-compose -f docker-compose.prod.yml up --build -d
 
 # Применение миграций БД
 echo "🗄️ Применение миграций базы данных..."
-docker-compose exec -T backend npx prisma migrate deploy
+docker-compose -f docker-compose.prod.yml exec -T backend npx prisma migrate deploy
 
 # Проверка статуса
 echo "📊 Проверка статуса..."
-docker-compose ps
+docker-compose -f docker-compose.prod.yml ps
 
 echo "✅ Обновление завершено!"

@@ -2,15 +2,18 @@ version: '3.8'
 
 services:
   backend:
-    build: ./Backend
-    container_name: booking-backend
+    build: 
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: booking-backend-prod
     ports:
       - "127.0.0.1:8000:3000"
     environment:
       - DATABASE_URL=file:./prisma/dev.db
       - NODE_ENV=production
     volumes:
-      - ./Backend/prisma:/app/prisma
+      - ./Backend/prisma:/app/prisma:rw
+      - backend-logs:/app/logs
     networks:
       - booking-network
     restart: unless-stopped
@@ -18,17 +21,25 @@ services:
       driver: "json-file"
       options:
         max-size: "10m"
-        max-file: "3"
+        max-file: "5"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/tables?date=2025-01-15&time=18:00"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   bot-user:
-    build: ./Bot_User
-    container_name: booking-bot-user
+    build: 
+      context: ./Bot_User
+      dockerfile: Dockerfile
+    container_name: booking-bot-user-prod
     environment:
       - USER_BOT_TOKEN=${USER_BOT_TOKEN}
       - WEBAPP_URL=${WEBAPP_URL}
       - NODE_ENV=production
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - booking-network
     restart: unless-stopped
@@ -36,16 +47,19 @@ services:
       driver: "json-file"
       options:
         max-size: "10m"
-        max-file: "3"
+        max-file: "5"
 
   bot-admin:
-    build: ./Bot_Admin
-    container_name: booking-bot-admin
+    build: 
+      context: ./Bot_Admin
+      dockerfile: Dockerfile
+    container_name: booking-bot-admin-prod
     environment:
       - ADMIN_BOT_TOKEN=${ADMIN_BOT_TOKEN}
       - NODE_ENV=production
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - booking-network
     restart: unless-stopped
@@ -53,11 +67,13 @@ services:
       driver: "json-file"
       options:
         max-size: "10m"
-        max-file: "3"
+        max-file: "5"
 
   frontend:
-    build: ./Frontend/restaurant-booking-twa
-    container_name: booking-frontend
+    build: 
+      context: ./Frontend/restaurant-booking-twa
+      dockerfile: Dockerfile
+    container_name: booking-frontend-prod
     ports:
       - "127.0.0.1:5173:80"
     networks:
@@ -67,7 +83,10 @@ services:
       driver: "json-file"
       options:
         max-size: "10m"
-        max-file: "3"
+        max-file: "5"
+
+volumes:
+  backend-logs:
 
 networks:
   booking-network:
