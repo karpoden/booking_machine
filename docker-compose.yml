@@ -3,51 +3,53 @@ version: '3.8'
 services:
   backend:
     build: ./Backend
-    environment:
-      - DATABASE_URL=file:./dev.db
-    volumes:
-      - ./Backend/prisma/dev.db:/app/prisma/dev.db
-    restart: unless-stopped
-    networks:
-      - app-network
-
-  frontend:
-    build: ./Frontend/restaurant-booking-twa
+    container_name: booking-backend
     ports:
-      - "8080:80"
-    depends_on:
-      - backend
-    restart: unless-stopped
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=file:./prisma/dev.db
+    volumes:
+      - ./Backend/prisma:/app/prisma
     networks:
-      - app-network
+      - booking-network
+    restart: unless-stopped
 
   bot-user:
     build: ./Bot_User
-    environment:
-      - USER_BOT_TOKEN=${USER_BOT_TOKEN}
-      - WEBAPP_URL=https://app.bookingminiapp.ru
-      - API_URL=http://backend:3000
+    container_name: booking-bot-user
     ports:
       - "3001:3001"
+    environment:
+      - USER_BOT_TOKEN=${USER_BOT_TOKEN}
+      - WEBAPP_URL=${WEBAPP_URL}
     depends_on:
       - backend
-    restart: unless-stopped
     networks:
-      - app-network
+      - booking-network
+    restart: unless-stopped
 
   bot-admin:
     build: ./Bot_Admin
-    environment:
-      - ADMIN_BOT_TOKEN=${ADMIN_BOT_TOKEN}
-      - API_URL=http://backend:3000
+    container_name: booking-bot-admin
     ports:
       - "3002:3002"
+    environment:
+      - ADMIN_BOT_TOKEN=${ADMIN_BOT_TOKEN}
     depends_on:
       - backend
-    restart: unless-stopped
     networks:
-      - app-network
+      - booking-network
+    restart: unless-stopped
+
+  frontend:
+    build: ./Frontend/restaurant-booking-twa
+    container_name: booking-frontend
+    ports:
+      - "80:80"
+    networks:
+      - booking-network
+    restart: unless-stopped
 
 networks:
-  app-network:
+  booking-network:
     driver: bridge

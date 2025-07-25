@@ -1,0 +1,8 @@
+# Add your restaurant-plan.png and table photos here
+# Structure:
+# public/
+# ├── restaurant-plan.png
+# └── table-1/
+#     ├── photo1.png
+#     ├── photo2.png
+#     └── ...

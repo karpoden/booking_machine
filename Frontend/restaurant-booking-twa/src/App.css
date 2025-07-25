@@ -1,35 +1,40 @@
 .container {
-  max-width: 400px;
+  max-width: 340px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 10px;
 }
 
 .header {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 18px;
 }
 
 h1 {
   color: #ffffff;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-  font-size: 20px;
-  margin: 0;
+  font-size: 17px;
+  margin: 0 0 8px 0;
 }
 
 .filters {
   display: flex;
-  gap: 10px;
+  flex-direction: row;
+  gap: 6px;
+  width: 100%;
+  justify-content: center;
 }
 
 .date-filter, .time-filter {
-  padding: 8px;
+  padding: 5px;
   border: 1px solid rgba(255,255,255,0.3);
   border-radius: 6px;
   background: rgba(255,255,255,0.1);
   color: #ffffff;
-  font-size: 12px;
+  font-size: 11px;
+  min-width: 70px;
+  max-width: 90px;
 }
 
 .restaurant-photo {
@@ -53,17 +58,17 @@ h1 {
 }
 
 .table-hotspot.available {
-  border: 2px solid rgba(46, 204, 113, 0.7);
-  box-shadow: 
-    0 0 12px rgba(46, 204, 113, 0.6),
-    inset 0 0 6px rgba(46, 204, 113, 0.2);
+  border: 2px solid rgba(46, 204, 113, 0.9);
+  box-shadow: 0 0 16px 4px rgba(46, 204, 113, 0.4), 0 0 6px 2px rgba(46, 204, 113, 0.2) inset;
+  background: rgba(46, 204, 113, 0.25);
+  transition: background 0.2s, box-shadow 0.2s;
 }
 
 .table-hotspot.booked {
-  border: 2px solid rgba(231, 76, 60, 0.7);
-  box-shadow: 
-    0 0 12px rgba(231, 76, 60, 0.6),
-    inset 0 0 6px rgba(231, 76, 60, 0.2);
+  border: 2px solid rgba(231, 76, 60, 0.9);
+  box-shadow: 0 0 16px 4px rgba(231, 76, 60, 0.4), 0 0 6px 2px rgba(231, 76, 60, 0.2) inset;
+  background: rgba(231, 76, 60, 0.25);
+  transition: background 0.2s, box-shadow 0.2s;
 }
 
 .table-1 {
@@ -163,7 +168,14 @@ h1 {
 }
 
 .table-hotspot:hover {
-  transform: scale(1.1);
+  background: rgba(46, 204, 113, 0.45) !important;
+  box-shadow: 0 0 24px 8px rgba(46, 204, 113, 0.6), 0 0 12px 4px rgba(46, 204, 113, 0.3) inset;
+  z-index: 20;
+}
+
+.table-hotspot.booked:hover {
+  background: rgba(231, 76, 60, 0.45) !important;
+  box-shadow: 0 0 24px 8px rgba(231, 76, 60, 0.6), 0 0 12px 4px rgba(231, 76, 60, 0.3) inset;
 }
 
 .book-btn:hover:not(:disabled) {
@@ -329,4 +341,109 @@ h1 {
   color: #ffffff;
   margin-bottom: 8px;
   font-size: 14px;
+}
+
+@media (max-width: 430px) {
+  .container {
+    max-width: 98vw;
+    padding: 4px;
+  }
+  .header {
+    margin-bottom: 10px;
+  }
+  .filters {
+    flex-direction: column;
+    gap: 4px;
+    align-items: stretch;
+  }
+  .date-filter, .time-filter {
+    font-size: 10px;
+    min-width: 0;
+    max-width: 100%;
+    padding: 4px;
+  }
+  h1 {
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .modal-content {
+    max-width: 98vw;
+    padding: 8px;
+  }
+  .book-btn, .modal-btn {
+    font-size: 9px;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 375px) {
+  .container {
+    padding: 2px;
+  }
+  .header {
+    margin-bottom: 6px;
+  }
+  .filters {
+    gap: 2px;
+  }
+  .date-filter, .time-filter {
+    font-size: 9px;
+    padding: 3px;
+  }
+  h1 {
+    font-size: 13px;
+  }
+  .modal-content {
+    padding: 4px;
+  }
+  .book-btn, .modal-btn {
+    font-size: 8px;
+    padding: 6px;
+  }
+  .photo-carousel {
+    width: 80px;
+    height: 48px;
+    margin-bottom: 4px;
+  }
+  .table-info {
+    top: -48px;
+    padding: 4px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 320px) {
+  .container {
+    padding: 1px;
+  }
+  .header {
+    margin-bottom: 2px;
+  }
+  .filters {
+    gap: 1px;
+  }
+  .date-filter, .time-filter {
+    font-size: 8px;
+    padding: 2px;
+  }
+  h1 {
+    font-size: 11px;
+  }
+  .modal-content {
+    padding: 2px;
+  }
+  .book-btn, .modal-btn {
+    font-size: 7px;
+    padding: 4px;
+  }
+  .photo-carousel {
+    width: 60px;
+    height: 36px;
+    margin-bottom: 2px;
+  }
+  .table-info {
+    top: -36px;
+    padding: 2px;
+    font-size: 9px;
+  }
 }
