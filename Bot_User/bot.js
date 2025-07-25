@@ -4,7 +4,7 @@ const express = require('express');
 require('dotenv').config();
 
 const bot = new TelegramBot(process.env.USER_BOT_TOKEN, { polling: true });
-const WEBAPP_URL = process.env.WEBAPP_URL || 'https://app.bookingminiapp.ru';
+const WEBAPP_URL = process.env.WEBAPP_URL || 'https://appbookingmachine.ru';
 const API_URL = 'http://backend:3000';
 
 // HTTP сервер для уведомлений
