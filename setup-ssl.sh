@@ -1,39 +1,34 @@
 #!/bin/bash
 
-echo "🔐 Настройка SSL сертификатов для bookingminiapp.ru..."
+DOMAIN="bookingminiapp.ru"
+EMAIL="your-email@example.com"
 
-# Создаем папку для SSL сертификатов
-mkdir -p ssl/booking
+echo "🔒 Настройка SSL сертификатов для $DOMAIN..."
 
-# Устанавливаем certbot если не установлен
+# Установка Certbot
 if ! command -v certbot &> /dev/null; then
-    echo "📦 Установка certbot..."
+    echo "📦 Установка Certbot..."
     sudo apt update
-    sudo apt install -y certbot
+    sudo apt install -y certbot python3-certbot-nginx
 fi
 
-# Останавливаем контейнеры если запущены
-echo "🛑 Остановка контейнеров..."
-docker-compose down
+# Создание директории для SSL
+mkdir -p ssl
 
-# Создаем самоподписанный сертификат
-echo "📜 Создание самоподписанного сертификата..."
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-    -keyout ssl/booking/privkey.pem \
-    -out ssl/booking/fullchain.pem \
-    -subj "/C=US/ST=State/L=City/O=Organization/CN=bookingminiapp.ru"
+# Получение сертификата
+echo "📜 Получение SSL сертификата..."
+sudo certbot certonly --standalone \
+    --email $EMAIL \
+    --agree-tos \
+    --no-eff-email \
+    -d $DOMAIN \
+    -d www.$DOMAIN
 
-# Проверяем наличие Let's Encrypt сертификатов
-if [ -f "/etc/letsencrypt/live/bookingminiapp.ru/fullchain.pem" ]; then
-    echo "✅ Найдены Let's Encrypt сертификаты, заменяем..."
-    sudo cp /etc/letsencrypt/live/bookingminiapp.ru/fullchain.pem ssl/booking/
-    sudo cp /etc/letsencrypt/live/bookingminiapp.ru/privkey.pem ssl/booking/
-    sudo chown $USER:$USER ssl/booking/*.pem
-fi
-
-# Устанавливаем правильные права доступа
-chmod 644 ssl/booking/fullchain.pem
-chmod 600 ssl/booking/privkey.pem
+# Копирование сертификатов
+echo "📋 Копирование сертификатов..."
+sudo cp /etc/letsencrypt/live/$DOMAIN/fullchain.pem ssl/
+sudo cp /etc/letsencrypt/live/$DOMAIN/privkey.pem ssl/
+sudo chown $USER:$USER ssl/*.pem
 
 echo "✅ SSL сертификаты настроены!"
-echo "🚀 Теперь запустите: ./deploy.sh"
+echo "📁 Сертификаты находятся в папке ssl/"

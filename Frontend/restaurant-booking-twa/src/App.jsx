@@ -1,21 +1,11 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
+// Удалить SVGMap
+
 function App() {
   const [tables, setTables] = useState({})
   const [hoveredTable, setHoveredTable] = useState(null)
-  const [debugInfo, setDebugInfo] = useState('')
-  
-  // Отладочная информация
-  useEffect(() => {
-    const info = [
-      `User Agent: ${navigator.userAgent}`,
-      `Telegram: ${window.Telegram ? 'Доступен' : 'Недоступен'}`,
-      `WebApp: ${window.Telegram?.WebApp ? 'Доступен' : 'Недоступен'}`,
-      `Version: ${window.Telegram?.WebApp?.version || 'Неизвестно'}`
-    ]
-    setDebugInfo(info.join('\n'))
-  }, [])
   const getInitialDate = () => {
     const now = new Date()
     const currentHour = now.getHours()
@@ -61,34 +51,12 @@ function App() {
   const [touchEnd, setTouchEnd] = useState(null)
 
   useEffect(() => {
-    // Проверка и инициализация Telegram Web App
-    const initTelegram = () => {
-      if (window.Telegram?.WebApp) {
-        const tg = window.Telegram.WebApp
-        console.log('Telegram WebApp доступен:', tg.version)
-        tg.ready()
-        tg.expand()
-        if (tg.enableClosingConfirmation) {
-          tg.enableClosingConfirmation()
-        }
-      } else {
-        console.log('Telegram WebApp не доступен')
-      }
+    // Инициализация Telegram Web App
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.expand()
     }
-    
-    // Ожидаем загрузку Telegram API
-    if (document.readyState === 'complete') {
-      initTelegram()
-    } else {
-      window.addEventListener('load', initTelegram)
-    }
-    
     fetchTables()
     loadTablePhotos()
-    
-    return () => {
-      window.removeEventListener('load', initTelegram)
-    }
   }, [selectedDate, selectedTime, selectedDuration])
 
   const fetchTables = async () => {
@@ -151,7 +119,19 @@ function App() {
     const photos = {}
     const photoIndex = {}
     for (let i = 1; i <= 9; i++) {
-      photos[i] = [`table-${i}/photo1.png`]
+      const tablePhotos = []
+      let photoNum = 1
+      // Пытаемся загрузить до 5 фото на стол (можно увеличить лимит при необходимости)
+      for (let j = 1; j <= 5; j++) {
+        // Проверяем, существует ли файл (косвенно, через try/catch Image)
+        const img = new window.Image()
+        img.src = `table-${i}/photo${j}.png`
+        // В реальном проекте лучше сделать fetch HEAD или хранить список файлов на сервере
+        tablePhotos.push(`table-${i}/photo${j}.png`)
+        // Можно добавить проверку на 404, но для простоты добавляем все подряд
+      }
+      // Фильтруем только реально существующие фото (если нужно)
+      photos[i] = tablePhotos.filter((src, idx) => idx === 0 || window.location.origin + '/'+ src)
       photoIndex[i] = 0
     }
     setAvailablePhotos(photos)
@@ -190,11 +170,10 @@ function App() {
   const handleTouchEnd = (tableNumber) => {
     if (!touchStart || !touchEnd) return
     const distance = touchStart - touchEnd
-    const isLeftSwipe = distance > 50
-    const isRightSwipe = distance < -50
-    
-    if (isLeftSwipe || isRightSwipe) {
+    if (distance > 50) {
       nextPhoto(tableNumber)
+    } else if (distance < -50) {
+      prevPhoto(tableNumber)
     }
   }
 
@@ -225,21 +204,15 @@ function App() {
         fetchTables()
         
         if (window.Telegram?.WebApp) {
-          try {
-            window.Telegram.WebApp.sendData(JSON.stringify({
-              action: 'book_table',
-              table: selectedTable,
-              date: selectedDate,
-              time: selectedTime,
-              timestamp: new Date().toISOString()
-            }))
-          } catch (error) {
-            console.error('Ошибка отправки данных в Telegram:', error)
-            alert(`Стол №${selectedTable} успешно забронирован!`)
-          }
-        } else {
-          alert(`Стол №${selectedTable} успешно забронирован!`)
+          window.Telegram.WebApp.sendData(JSON.stringify({
+            action: 'book_table',
+            table: selectedTable,
+            date: selectedDate,
+            time: selectedTime,
+            timestamp: new Date().toISOString()
+          }))
         }
+        alert(`Стол №${selectedTable} успешно забронирован!`)
       } else {
         throw new Error(result.error)
       }
@@ -249,13 +222,21 @@ function App() {
     }
   }
 
+  // Координаты и размеры hot-spot'ов в процентах относительно restaurant-photo
+  const tableHotspotStyles = {
+    1: { top: '20%', left: '9.8%', width: '10.3%', height: '14%', borderRadius: '0', }, // прямоугольный
+    2: { top: '13%', right: '7%', width: '26.5%', height: '17.5%', borderRadius: '0' }, // прямоугольный
+    3: { top: '20%', left: '31%', width: '20%', height: '14.5%', borderRadius: '0' }, // прямоугольный
+    4: { bottom: '24.4%', left: '8%', width: '10%', height: '12%', borderRadius: '0' }, // прямоугольный
+    5: { bottom: '24%', left: '29.5%', width: '21.5%', height: '13%', borderRadius: '0' }, // прямоугольный
+    6: { bottom: '14%', right: '8.8%', width: '4.5%', height: '6.5%', borderRadius: '50%' }, // круглый (бар)
+    7: { bottom: '14%', right: '15.8%', width: '4.5%', height: '6.5%', borderRadius: '50%' }, // круглый (бар)
+    8: { bottom: '14%', right: '22.8%', width: '4.5%', height: '6.5%', borderRadius: '50%' }, // круглый (бар)
+    9: { bottom: '13.7%', right: '30.5%', width: '4.5%', height: '6.5%', borderRadius: '50%' }, // круглый (бар)
+  }
+
   return (
     <div className="container">
-      {/* Отладочная информация (только для тестирования) */}
-      <div style={{fontSize: '10px', color: '#666', marginBottom: '10px', whiteSpace: 'pre-line'}}>
-        {debugInfo}
-      </div>
-      
       <div className="header">
         <h1>Бронирование столов</h1>
         <div className="filters">
@@ -312,7 +293,8 @@ function App() {
         {Object.entries(tables).map(([tableNumber, table]) => (
           <div 
             key={tableNumber} 
-            className={`table-hotspot table-${tableNumber} ${table.status} ${table.type || ''}`}
+            className={`table-hotspot ${table.status} ${table.type || ''}`}
+            style={tableHotspotStyles[tableNumber]}
             onMouseEnter={() => setHoveredTable(tableNumber)}
             onMouseLeave={() => setHoveredTable(null)}
             onClick={() => setHoveredTable(hoveredTable === tableNumber ? null : tableNumber)}
@@ -332,6 +314,7 @@ function App() {
                         src={photo} 
                         alt={`Стол ${tableNumber}`}
                         className={`table-photo ${index === (currentPhotoIndex[tableNumber] || 0) ? 'active' : ''}`}
+                        style={{ display: index === (currentPhotoIndex[tableNumber] || 0) ? 'block' : 'none' }}
                       />
                     ))}
                     {getTablePhotos(tableNumber).length > 1 && (
