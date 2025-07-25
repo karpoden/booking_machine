@@ -2,92 +2,63 @@ version: '3.8'
 
 services:
   backend:
-    build: 
+    build:
       context: ./Backend
       dockerfile: Dockerfile
     container_name: booking-backend-prod
-    ports:
-      - "127.0.0.1:8000:3000"
     environment:
-      - DATABASE_URL=file:./prisma/dev.db
+      - DATABASE_URL=file:./dev.db
       - NODE_ENV=production
     volumes:
-      - ./Backend/prisma:/app/prisma:rw
-      - backend-logs:/app/logs
       - backend-db:/app/prisma
     networks:
       - booking-network
     restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "5"
-    healthcheck:
-      test: ["CMD", "sh", "-c", "nc -z localhost 3000 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   bot-user:
-    build: 
+    build:
       context: ./Bot_User
       dockerfile: Dockerfile
     container_name: booking-bot-user-prod
     environment:
       - USER_BOT_TOKEN=${USER_BOT_TOKEN}
       - WEBAPP_URL=${WEBAPP_URL}
-      - NODE_ENV=production
     depends_on:
       - backend
     networks:
       - booking-network
     restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "5"
 
   bot-admin:
-    build: 
+    build:
       context: ./Bot_Admin
       dockerfile: Dockerfile
     container_name: booking-bot-admin-prod
     environment:
       - ADMIN_BOT_TOKEN=${ADMIN_BOT_TOKEN}
-      - NODE_ENV=production
     depends_on:
       - backend
     networks:
       - booking-network
     restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "5"
 
   frontend:
-    build: 
+    build:
       context: ./Frontend/restaurant-booking-twa
       dockerfile: Dockerfile
     container_name: booking-frontend-prod
     ports:
-      - "127.0.0.1:5173:80"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./ssl:/etc/nginx/ssl:ro
     depends_on:
       - backend
     networks:
       - booking-network
     restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "5"
 
 volumes:
-  backend-logs:
   backend-db:
 
 networks:
