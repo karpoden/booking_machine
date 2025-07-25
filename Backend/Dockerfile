@@ -13,4 +13,4 @@ EXPOSE 3000
 
 USER node
 
-CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
+CMD ["sh", "-c", "npx prisma generate && npx prisma migrate deploy && npm start"]
