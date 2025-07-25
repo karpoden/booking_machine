@@ -443,7 +443,7 @@ function App() {
             </div>
             <button 
               className="modal-btn"
-              disabled={!bookingData.name || bookingData.phone.length < 12}
+              disabled={!bookingData.name || bookingData.phone.length < 11}
               onClick={submitBooking}
             >
               Подтвердить бронирование
