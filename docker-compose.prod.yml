@@ -23,7 +23,7 @@ services:
         max-size: "10m"
         max-file: "5"
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/tables?date=2025-01-15&time=18:00"]
+      test: ["CMD", "sh", "-c", "nc -z localhost 3000 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -38,8 +38,7 @@ services:
       - WEBAPP_URL=${WEBAPP_URL}
       - NODE_ENV=production
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
     networks:
       - booking-network
     restart: unless-stopped
@@ -58,8 +57,7 @@ services:
       - ADMIN_BOT_TOKEN=${ADMIN_BOT_TOKEN}
       - NODE_ENV=production
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
     networks:
       - booking-network
     restart: unless-stopped
