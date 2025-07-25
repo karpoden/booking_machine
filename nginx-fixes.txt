@@ -1,0 +1,87 @@
+ИСПРАВЛЕНИЯ ДЛЯ NGINX КОНФИГУРАЦИИ:
+
+1. В строке с Strict-Transport-Security исправить обрезанный текст:
+   ЗАМЕНИТЬ:
+   add_header Strict-Transport-Security "max-age=31536000; includeS>
+   
+   НА:
+   add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload";
+
+2. Добавить обработку статических файлов для лучшей производительности:
+   ДОБАВИТЬ в location /:
+   
+   # Static files caching
+   location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+       proxy_pass http://127.0.0.1:5173;
+       proxy_set_header Host $host;
+       expires 1y;
+       add_header Cache-Control "public, immutable";
+   }
+
+3. Для Telegram Mini App добавить специальные заголовки:
+   ДОБАВИТЬ в location /:
+   
+   add_header Content-Security-Policy "frame-ancestors https://web.telegram.org";
+
+ИТОГОВАЯ КОНФИГУРАЦИЯ ДОЛЖНА БЫТЬ:
+
+server {
+    server_name appbookingmachine.ru;
+
+    location / {
+        proxy_pass http://127.0.0.1:5173;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        add_header X-Content-Type-Options nosniff;
+        add_header X-Frame-Options SAMEORIGIN;
+        add_header X-XSS-Protection "1; mode=block";
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload";
+        add_header Referrer-Policy "no-referrer";
+        add_header Permissions-Policy "geolocation=(), microphone=()";
+        add_header Content-Security-Policy "frame-ancestors https://web.telegram.org";
+    }
+
+    # Static files caching
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+        proxy_pass http://127.0.0.1:5173;
+        proxy_set_header Host $host;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        add_header X-Content-Type-Options nosniff;
+        add_header X-Frame-Options DENY;
+        add_header X-XSS-Protection "1; mode=block";
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload";
+        add_header Referrer-Policy "no-referrer";
+        add_header Permissions-Policy "geolocation=(), microphone=()";
+    }
+
+    listen 443 ssl;
+    ssl_certificate /etc/letsencrypt/live/appbookingmachine.ru/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/appbookingmachine.ru/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+}
+
+server {
+    if ($host = appbookingmachine.ru) {
+        return 301 https://$host$request_uri;
+    }
+
+    listen 80;
+    server_name appbookingmachine.ru;
+    return 404;
+}
