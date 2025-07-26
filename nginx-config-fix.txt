@@ -1,0 +1,15 @@
+Замените в /etc/nginx/sites-available/booking_machine:
+
+1. Строку:
+   proxy_pass http://127.0.0.1:5173;
+   На:
+   proxy_pass http://127.0.0.1:8080;
+
+2. Строку в location /api/:
+   proxy_pass http://127.0.0.1:8000;
+   На:
+   proxy_pass http://127.0.0.1:3000;
+
+Затем выполните:
+sudo nginx -t
+sudo systemctl reload nginx

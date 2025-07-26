@@ -1,0 +1,20 @@
+Замените в /etc/nginx/sites-available/booking_machine:
+
+location / {
+    proxy_pass http://appbookingmachine.ru:8080;
+    ...
+}
+
+location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+    proxy_pass http://appbookingmachine.ru:8080;
+    ...
+}
+
+location /api/ {
+    proxy_pass http://appbookingmachine.ru:3000;
+    ...
+}
+
+Затем:
+sudo nginx -t
+sudo systemctl reload nginx

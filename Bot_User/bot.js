@@ -74,10 +74,10 @@ bot.on('callback_query', async (query) => {
       ]
     };
     
-    bot.sendMessage(chatId, 
+    bot.editMessageText(
       '🍽 Добро пожаловать в систему бронирования столов!\n\n' +
-      'Выберите действие:', 
-      { reply_markup: keyboard }
+      'Выберите действие:',
+      { chat_id: chatId, message_id: query.message.message_id, reply_markup: keyboard }
     );
   }
   
@@ -92,10 +92,11 @@ bot.on('callback_query', async (query) => {
         ]
       };
       
+      let message;
       if (bookings.length === 0) {
-        bot.sendMessage(chatId, '📋 У вас нет активных бронирований.', { reply_markup: keyboard });
+        message = '📋 У вас нет активных бронирований.';
       } else {
-        let message = '📋 Ваши бронирования:\n\n';
+        message = '📋 Ваши бронирования:\n\n';
         bookings.forEach((booking, index) => {
           message += `${index + 1}. ✅ Стол №${booking.tableId}\n`;
           message += `   📅 ${booking.bookingDate} в ${booking.bookingTime}\n`;
@@ -105,12 +106,16 @@ bot.on('callback_query', async (query) => {
           }
           message += `\n`;
         });
-        
-        bot.sendMessage(chatId, message, { reply_markup: keyboard });
       }
+      
+      bot.editMessageText(message, {
+        chat_id: chatId, 
+        message_id: query.message.message_id, 
+        reply_markup: keyboard
+      });
     } catch (error) {
       console.error('Ошибка получения бронирований:', error);
-      bot.sendMessage(chatId, '❌ Ошибка получения бронирований. Попробуйте позже.');
+      bot.answerCallbackQuery(query.id, { text: 'Ошибка получения бронирований' });
     }
   }
   
