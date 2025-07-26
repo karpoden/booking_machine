@@ -115,7 +115,16 @@ bot.on('callback_query', async (query) => {
       });
     } catch (error) {
       console.error('Ошибка получения бронирований:', error);
-      bot.answerCallbackQuery(query.id, { text: 'Ошибка получения бронирований' });
+      const keyboard = {
+        inline_keyboard: [
+          [{ text: '🏠 Главное меню', callback_data: 'main_menu' }]
+        ]
+      };
+      bot.editMessageText('❌ Ошибка получения бронирований', {
+        chat_id: chatId,
+        message_id: query.message.message_id,
+        reply_markup: keyboard
+      });
     }
   }
   

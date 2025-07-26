@@ -77,15 +77,49 @@ async function showTableButtons(chatId, action) {
   let availableTables = [];
   
   if (action === 'add_booking') {
-    // Для добавления показываем все столы
-    availableTables = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    // Для добавления показываем столы, которые имеют свободное время
+    const allTables = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    
+    for (const tableId of allTables) {
+      // Проверяем, есть ли свободное время сегодня
+      let hasAvailableTime = false;
+      for (let hour = Math.max(12, now.getHours()); hour < 24; hour++) {
+        for (let minute of [0, 30]) {
+          if (hour === now.getHours() && minute <= now.getMinutes()) continue;
+          
+          const timeStr = `${hour}:${minute.toString().padStart(2, '0')}`;
+          const isBooked = bookings.some(b => 
+            b.tableId === tableId && 
+            b.bookingDate === today &&
+            timesOverlap(b.bookingTime, b.duration || 2, timeStr, 2)
+          );
+          
+          if (!isBooked) {
+            hasAvailableTime = true;
+            break;
+          }
+        }
+        if (hasAvailableTime) break;
+      }
+      
+      if (hasAvailableTime) {
+        availableTables.push(tableId);
+      }
+    }
   } else if (action === 'cancel_booking') {
     // Для отмены показываем только занятые столы
     availableTables = [...new Set(bookings.map(b => b.tableId))];
   }
   
   if (availableTables.length === 0) {
-    bot.sendMessage(chatId, 'Нет доступных столов для этого действия.');
+    const keyboard = {
+      inline_keyboard: [
+        [{ text: '🏠 Главное меню', callback_data: 'main_menu' }]
+      ]
+    };
+    bot.sendMessage(chatId, 'Нет доступных столов для этого действия.', { reply_markup: keyboard });
     return;
   }
   
@@ -132,7 +166,12 @@ async function showDateButtons(chatId, action, tableId) {
   }
   
   if (dates.length === 0) {
-    bot.sendMessage(chatId, 'Нет доступных дат для этого стола.');
+    const keyboard = {
+      inline_keyboard: [
+        [{ text: '🏠 Главное меню', callback_data: 'main_menu' }]
+      ]
+    };
+    bot.sendMessage(chatId, 'Нет доступных дат для этого стола.', { reply_markup: keyboard });
     return;
   }
   
@@ -163,17 +202,47 @@ async function showTimeButtons(chatId, action, tableId, date) {
       });
     });
   } else {
-    // Для добавления показываем все время
+    // Для добавления показываем только свободное время
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    
     for (let hour = 12; hour < 24; hour++) {
-      times.push(
-        { text: `${hour}:00`, callback_data: `${action}_time_${tableId}_${date}_${hour}:00` },
-        { text: `${hour}:30`, callback_data: `${action}_time_${tableId}_${date}_${hour}:30` }
-      );
+      for (let minute of [0, 30]) {
+        const timeStr = `${hour}:${minute.toString().padStart(2, '0')}`;
+        
+        // Пропускаем прошедшее время для сегодняшней даты
+        if (date === today) {
+          if (hour < currentHour || (hour === currentHour && minute <= currentMinute)) {
+            continue;
+          }
+        }
+        
+        // Проверяем, свободно ли время
+        const isBooked = bookings.some(b => 
+          b.tableId === parseInt(tableId) && 
+          b.bookingDate === date &&
+          timesOverlap(b.bookingTime, b.duration || 2, timeStr, 2)
+        );
+        
+        if (!isBooked) {
+          times.push({
+            text: timeStr,
+            callback_data: `${action}_time_${tableId}_${date}_${timeStr}`
+          });
+        }
+      }
     }
   }
   
   if (times.length === 0) {
-    bot.sendMessage(chatId, 'Нет доступного времени для этого стола.');
+    const keyboard = {
+      inline_keyboard: [
+        [{ text: '🏠 Главное меню', callback_data: 'main_menu' }]
+      ]
+    };
+    bot.sendMessage(chatId, 'Нет доступного времени для этого стола.', { reply_markup: keyboard });
     return;
   }
   
