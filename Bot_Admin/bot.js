@@ -4,7 +4,7 @@ const express = require('express');
 require('dotenv').config();
 
 const bot = new TelegramBot(process.env.ADMIN_BOT_TOKEN, { polling: true });
-const API_URL = 'http://backend:3000';
+const API_URL = 'http://booking-backend-prod:3000';
 
 // HTTP сервер для уведомлений
 const app = express();
@@ -72,64 +72,117 @@ bot.onText(/\/cancel/, (msg) => {
 });
 
 // Функция показа кнопок столов
-function showTableButtons(chatId, action) {
-  const keyboard = {
-    inline_keyboard: [
-      [{ text: 'Стол 1', callback_data: `${action}_table_1` }, { text: 'Стол 2', callback_data: `${action}_table_2` }, { text: 'Стол 3', callback_data: `${action}_table_3` }],
-      [{ text: 'Стол 4', callback_data: `${action}_table_4` }, { text: 'Стол 5', callback_data: `${action}_table_5` }, { text: 'Стол 6', callback_data: `${action}_table_6` }],
-      [{ text: 'Стол 7', callback_data: `${action}_table_7` }, { text: 'Стол 8', callback_data: `${action}_table_8` }, { text: 'Стол 9', callback_data: `${action}_table_9` }]
-    ]
-  };
+async function showTableButtons(chatId, action) {
+  const bookings = await getAllBookings();
+  let availableTables = [];
   
+  if (action === 'add_booking') {
+    // Для добавления показываем все столы
+    availableTables = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  } else if (action === 'cancel_booking') {
+    // Для отмены показываем только занятые столы
+    availableTables = [...new Set(bookings.map(b => b.tableId))];
+  }
+  
+  if (availableTables.length === 0) {
+    bot.sendMessage(chatId, 'Нет доступных столов для этого действия.');
+    return;
+  }
+  
+  const buttons = [];
+  for (let i = 0; i < availableTables.length; i += 3) {
+    const row = availableTables.slice(i, i + 3).map(tableId => ({
+      text: `Стол ${tableId}`,
+      callback_data: `${action}_table_${tableId}`
+    }));
+    buttons.push(row);
+  }
+  
+  const keyboard = { inline_keyboard: buttons };
   bot.sendMessage(chatId, 'Выберите стол:', { reply_markup: keyboard });
 }
 
 // Функция показа кнопок дат
-function showDateButtons(chatId, action, tableId) {
+async function showDateButtons(chatId, action, tableId) {
+  const bookings = await getAllBookings();
   const today = new Date();
   const dates = [];
   
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
-    const dateStr = date.toISOString().split('T')[0];
-    const dayName = i === 0 ? 'Сегодня' : i === 1 ? 'Завтра' : date.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' });
-    dates.push({ text: dayName, callback_data: `${action}_date_${tableId}_${dateStr}` });
+  if (action === 'cancel_booking') {
+    // Для отмены показываем только даты с бронированиями этого стола
+    const tableBookings = bookings.filter(b => b.tableId === parseInt(tableId));
+    const bookedDates = [...new Set(tableBookings.map(b => b.bookingDate))];
+    
+    bookedDates.forEach(dateStr => {
+      const date = new Date(dateStr);
+      const dayName = dateStr === today.toISOString().split('T')[0] ? 'Сегодня' : 
+                     dateStr === new Date(today.getTime() + 24*60*60*1000).toISOString().split('T')[0] ? 'Завтра' :
+                     date.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' });
+      dates.push({ text: dayName, callback_data: `${action}_date_${tableId}_${dateStr}` });
+    });
+  } else {
+    // Для добавления показываем все даты
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      const dateStr = date.toISOString().split('T')[0];
+      const dayName = i === 0 ? 'Сегодня' : i === 1 ? 'Завтра' : date.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' });
+      dates.push({ text: dayName, callback_data: `${action}_date_${tableId}_${dateStr}` });
+    }
   }
   
-  const keyboard = {
-    inline_keyboard: [
-      [dates[0], dates[1]],
-      [dates[2], dates[3]],
-      [dates[4], dates[5]],
-      [dates[6]]
-    ]
-  };
+  if (dates.length === 0) {
+    bot.sendMessage(chatId, 'Нет доступных дат для этого стола.');
+    return;
+  }
   
+  const buttons = [];
+  for (let i = 0; i < dates.length; i += 2) {
+    buttons.push(dates.slice(i, i + 2));
+  }
+  
+  const keyboard = { inline_keyboard: buttons };
   bot.sendMessage(chatId, 'Выберите дату:', { reply_markup: keyboard });
 }
 
 // Функция показа кнопок времени
-function showTimeButtons(chatId, action, tableId, date) {
-  const times = [];
-  for (let hour = 12; hour < 24; hour++) {
-    times.push(
-      { text: `${hour}:00`, callback_data: `${action}_time_${tableId}_${date}_${hour}:00` },
-      { text: `${hour}:30`, callback_data: `${action}_time_${tableId}_${date}_${hour}:30` }
+async function showTimeButtons(chatId, action, tableId, date) {
+  const bookings = await getAllBookings();
+  let times = [];
+  
+  if (action === 'cancel_booking') {
+    // Для отмены показываем только занятое время
+    const tableBookings = bookings.filter(b => 
+      b.tableId === parseInt(tableId) && b.bookingDate === date
     );
+    
+    tableBookings.forEach(booking => {
+      times.push({
+        text: booking.bookingTime,
+        callback_data: `${action}_time_${tableId}_${date}_${booking.bookingTime}`
+      });
+    });
+  } else {
+    // Для добавления показываем все время
+    for (let hour = 12; hour < 24; hour++) {
+      times.push(
+        { text: `${hour}:00`, callback_data: `${action}_time_${tableId}_${date}_${hour}:00` },
+        { text: `${hour}:30`, callback_data: `${action}_time_${tableId}_${date}_${hour}:30` }
+      );
+    }
   }
   
-  const keyboard = {
-    inline_keyboard: [
-      [times[0], times[1], times[2], times[3]],
-      [times[4], times[5], times[6], times[7]],
-      [times[8], times[9], times[10], times[11]],
-      [times[12], times[13], times[14], times[15]],
-      [times[16], times[17], times[18], times[19]],
-      [times[20], times[21], times[22], times[23]]
-    ]
-  };
+  if (times.length === 0) {
+    bot.sendMessage(chatId, 'Нет доступного времени для этого стола.');
+    return;
+  }
   
+  const buttons = [];
+  for (let i = 0; i < times.length; i += 4) {
+    buttons.push(times.slice(i, i + 4));
+  }
+  
+  const keyboard = { inline_keyboard: buttons };
   bot.sendMessage(chatId, 'Выберите время:', { reply_markup: keyboard });
 }
 
@@ -165,25 +218,30 @@ bot.on('callback_query', async (query) => {
   if (data === 'all_bookings') {
     const bookings = await getAllBookings();
     
+    const keyboard = {
+      inline_keyboard: [
+        [{ text: '🏠 Главное меню', callback_data: 'main_menu' }]
+      ]
+    };
+    
+    let message;
     if (bookings.length === 0) {
-      bot.sendMessage(chatId, '📋 Нет активных бронирований.');
+      message = '📋 Нет активных бронирований.';
     } else {
-      const keyboard = {
-        inline_keyboard: [
-          [{ text: '🏠 Главное меню', callback_data: 'main_menu' }]
-        ]
-      };
-      
-      let message = '📊 Все бронирования:\n\n';
+      message = '📊 Все бронирования:\n\n';
       bookings.forEach((booking, index) => {
         message += `${index + 1}. 🍽 Стол №${booking.tableId}\n`;
         message += `   📅 ${booking.bookingDate} в ${booking.bookingTime}\n`;
         message += `   📞 ${booking.customerPhone || 'не указан'}\n`;
         message += `   👤 ${booking.customerName || 'не указано'}\n\n`;
       });
-      
-      bot.sendMessage(chatId, message, { reply_markup: keyboard });
     }
+    
+    bot.editMessageText(message, {
+      chat_id: chatId,
+      message_id: query.message.message_id,
+      reply_markup: keyboard
+    });
   }
   
   if (data === 'today_bookings') {
@@ -208,16 +266,17 @@ bot.on('callback_query', async (query) => {
       return false;
     });
     
+    const keyboard = {
+      inline_keyboard: [
+        [{ text: '🏠 Главное меню', callback_data: 'main_menu' }]
+      ]
+    };
+    
+    let message;
     if (todayBookings.length === 0) {
-      bot.sendMessage(chatId, '📅 На сегодня нет бронирований.');
+      message = '📅 На сегодня нет бронирований.';
     } else {
-      const keyboard = {
-        inline_keyboard: [
-          [{ text: '🏠 Главное меню', callback_data: 'main_menu' }]
-        ]
-      };
-      
-      let message = '📅 Бронирования на сегодня:\n\n';
+      message = '📅 Бронирования на сегодня:\n\n';
       todayBookings.forEach((booking, index) => {
         const isNextDay = booking.bookingDate === tomorrowStr;
         message += `${index + 1}. 🍽 Стол №${booking.tableId}\n`;
@@ -225,9 +284,13 @@ bot.on('callback_query', async (query) => {
         message += `   📞 ${booking.customerPhone || 'не указан'}\n`;
         message += `   👤 ${booking.customerName || 'не указано'}\n\n`;
       });
-      
-      bot.sendMessage(chatId, message, { reply_markup: keyboard });
     }
+    
+    bot.editMessageText(message, {
+      chat_id: chatId,
+      message_id: query.message.message_id,
+      reply_markup: keyboard
+    });
   }
   
   if (data === 'add_booking') {
@@ -248,10 +311,10 @@ bot.on('callback_query', async (query) => {
       ]
     };
     
-    bot.sendMessage(chatId, 
+    bot.editMessageText(
       '👨‍💼 Панель администратора\n\n' +
-      'Выберите действие:', 
-      { reply_markup: keyboard }
+      'Выберите действие:',
+      { chat_id: chatId, message_id: query.message.message_id, reply_markup: keyboard }
     );
   }
   
@@ -307,7 +370,7 @@ bot.on('callback_query', async (query) => {
       
       if (booking && booking.telegramId) {
         try {
-          await axios.post('http://bot-user:3001/notify', {
+          await axios.post('http://booking-bot-user-prod:3001/notify', {
             userId: booking.telegramId,
             message: `❌ Ваше бронирование отменено администратором:\n\n🍽 Стол №${booking.tableId}\n📅 ${booking.bookingDate} в ${booking.bookingTime}\n\nПриносим извинения за неудобства.`
           });
@@ -341,7 +404,7 @@ bot.on('callback_query', async (query) => {
       const booking = bookings.find(b => b.id == bookingId);
       
       if (booking && booking.telegramId) {
-        await axios.post('http://bot-user:3001/notify', {
+        await axios.post('http://booking-bot-user-prod:3001/notify', {
           userId: booking.telegramId,
           message: `✅ Ваше бронирование подтверждено!\n\n🍽 Стол №${booking.tableId}\n📅 ${booking.bookingDate} в ${booking.bookingTime}\n\nЖдем вас в ресторане! 🎉`
         });
@@ -402,7 +465,7 @@ bot.on('callback_query', async (query) => {
         
         // Уведомляем пользователя
         if (booking.telegramId) {
-          await axios.post('http://bot-user:3001/notify', {
+          await axios.post('http://booking-bot-user-prod:3001/notify', {
             userId: booking.telegramId,
             message: `🔄 Ваше бронирование изменено!\n\n🍽 Новый стол: №${newTableId}\n📅 ${booking.bookingDate} в ${booking.bookingTime}\n\nЖдем вас в ресторане! 🎉`
           });
@@ -438,7 +501,7 @@ bot.on('callback_query', async (query) => {
         
         // Уведомляем пользователя
         if (booking.telegramId) {
-          await axios.post('http://bot-user:3001/notify', {
+          await axios.post('http://booking-bot-user-prod:3001/notify', {
             userId: booking.telegramId,
             message: `❌ К сожалению, ваше бронирование отклонено.\n\n🍽 Стол №${booking.tableId}\n📅 ${booking.bookingDate} в ${booking.bookingTime}\n\nПопробуйте выбрать другое время.`
           });

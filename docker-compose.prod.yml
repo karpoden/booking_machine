@@ -11,6 +11,8 @@ services:
       - NODE_ENV=production
     volumes:
       - backend-db:/app/prisma
+    ports:
+      - "3000:3000"
     networks:
       - booking-network
     restart: unless-stopped
@@ -48,8 +50,7 @@ services:
       dockerfile: Dockerfile
     container_name: booking-frontend-prod
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"
     volumes:
       - ./ssl:/etc/nginx/ssl:ro
     depends_on:

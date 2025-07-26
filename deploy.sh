@@ -10,7 +10,7 @@ fi
 
 # Остановка существующих контейнеров
 echo "🛑 Остановка существующих контейнеров..."
-docker-compose -f docker-compose.prod.yml down
+docker compose -f docker-compose.prod.yml down
 
 # Удаление старых образов
 echo "🗑️ Удаление старых образов..."
@@ -19,13 +19,13 @@ docker image prune -f
 
 # Сборка и запуск
 echo "🔨 Сборка и запуск контейнеров..."
-docker-compose -f docker-compose.prod.yml up --build -d
+docker compose -f docker-compose.prod.yml up --build -d
 
 # Проверка статуса
 echo "📊 Проверка статуса контейнеров..."
-docker-compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml ps
 
 echo "✅ Деплой завершен!"
-echo "📱 Frontend: http://localhost:5173"
-echo "🔧 Backend API: http://localhost:8000/api"
-echo "📋 Логи: docker-compose -f docker-compose.prod.yml logs -f"
+echo "📱 Frontend: http://localhost:8080"
+echo "🔧 Backend API: http://localhost:3000/api"
+echo "📋 Логи: docker compose -f docker-compose.prod.yml logs -f"
