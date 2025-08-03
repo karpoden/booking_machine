@@ -63,23 +63,28 @@ body {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 25px;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 15px;
+  padding: 20px 15px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  border: 1px solid rgba(46, 204, 113, 0.2);
 }
 
 h1 {
   color: #ffffff;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-  font-size: 17px;
+  font-size: 22px;
   margin: 0;
   flex-shrink: 0;
+  font-weight: bold;
 }
 
 .filters {
   display: flex;
   flex-direction: row;
-  gap: 8px;
+  gap: 12px;
   align-items: center;
   flex-wrap: wrap;
   justify-content: flex-end;
@@ -91,21 +96,56 @@ h1 {
 }
 
 .date-filter, .time-filter {
-  padding: 6px 10px;
-  border: 1px solid rgba(46,204,113,0.5);
-  border-radius: 6px;
-  background: rgba(46,204,113,0.18);
+  padding: 10px 15px;
+  border: 2px solid rgba(46,204,113,0.6);
+  border-radius: 8px;
+  background: rgba(46,204,113,0.25);
   color: #ffffff;
-  font-size: 12px;
-  min-width: 80px;
-  max-width: 120px;
+  font-size: 14px;
+  min-width: 100px;
+  max-width: 140px;
   margin: 0;
   box-shadow: none;
   flex-shrink: 0;
+  font-weight: 500;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  padding-right: 30px;
+}
+
+/* Стили для опций в селекте */
+.date-filter option, .time-filter option {
+  background: rgba(0, 0, 0, 0.9);
+  color: #ffffff;
+  padding: 8px 12px;
+  border: none;
+}
+
+/* Ограничение высоты выпадающего списка */
+.time-filter {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* Стили для мобильных устройств */
+@media (max-width: 768px) {
+  .time-filter {
+    max-height: 150px;
+  }
+  
+  .date-filter option, .time-filter option {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
 }
 
 .filters select.time-filter:last-child {
-  min-width: 100px;
+  min-width: 120px;
 }
 
 .restaurant-photo {
@@ -187,15 +227,29 @@ h1 {
 }
 
 .table-info {
-  position: absolute;
-  top: -60px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.8);
-  padding: 8px;
-  border-radius: 6px;
-  white-space: nowrap;
-  z-index: 10;
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid rgba(46,204,113,0.6);
+  border-radius: 12px;
+  padding: 10px;
+  color: white;
+  text-align: center;
+  font-size: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  position: relative;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-in-out;
+  transition: opacity 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .table-info p {
@@ -219,6 +273,8 @@ h1 {
   box-shadow: 0 2px 4px rgba(0,0,0,0.3);
   margin: 0 auto;
   display: block;
+  z-index: 1001;
+  position: relative;
 }
 
 .table-5 {
@@ -276,21 +332,30 @@ h1 {
 
 /* Карусель фотографий */
 .photo-carousel {
-  width: 380px;
-  height: 260px;
-  margin-bottom: 16px;
+  width: 280px;
+  height: 160px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(0, 255, 0, 0.3);
   position: relative;
   overflow: hidden;
-  border-radius: 16px;
-  user-select: none;
-  background: rgba(0,0,0,0.22);
-  touch-action: pan-y;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform 0.2s, opacity 0.2s ease-in-out;
   -webkit-tap-highlight-color: transparent;
+  z-index: 1002;
+  animation: carouselFadeIn 0.3s ease-in-out;
+}
+
+@keyframes carouselFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .photo-carousel:hover {
@@ -322,24 +387,28 @@ h1 {
 
 .carousel-arrow {
   position: absolute;
-  top: 75%;
+  top: 50%;
   transform: translateY(-50%);
-  width: 60px;
-  height: 60px;
-  background: rgba(0, 0, 0, 0.9);
-  color: white;
+  width: 32px;
+  height: 32px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #fff;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 44px;
-  opacity: 1;
-  z-index: 2;
-  border-radius: 50%;
-  border: 3px solid #fff;
-  transition: background 0.2s, opacity 0.2s;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  color: white;
+  font-size: 20px;
   font-weight: bold;
+  opacity: 0.9;
+  transition: all 0.2s;
+  z-index: 1003;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  line-height: 1;
+  text-align: center;
+  padding: 0;
+  margin: 0;
 }
 
 .carousel-arrow:hover {
@@ -353,11 +422,11 @@ h1 {
 }
 
 .carousel-prev {
-  left: 16px;
+  left: 8px;
 }
 
 .carousel-next {
-  right: 16px;
+  right: 8px;
 }
 
 .table-photo {
@@ -388,6 +457,9 @@ h1 {
   justify-content: center;
   padding-top: 150px;
   z-index: 1000;
+  /* Предотвращение масштабирования */
+  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
 }
 
 .modal-content {
@@ -398,6 +470,11 @@ h1 {
   max-width: 350px;
   width: 90%;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  /* Предотвращение масштабирования на мобильных */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .modal-content h2 {
@@ -463,10 +540,17 @@ h1 {
   background: rgba(255,255,255,0.1);
   color: #ffffff;
   font-size: 14px;
+  /* Предотвращение масштабирования на мобильных */
+  font-size: 16px; /* Минимальный размер для предотвращения зума */
+  -webkit-appearance: none;
+  appearance: none;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .form-input::placeholder {
   color: rgba(255, 255, 255, 0.6);
+  font-size: 16px; /* Предотвращение зума на iOS */
 }
 
 .duration-selector {
@@ -484,35 +568,70 @@ h1 {
   .header {
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
+    gap: 12px;
+    padding: 15px 12px;
+    margin-bottom: 20px;
   }
   
   .filters {
     justify-content: center;
-    gap: 6px;
+    gap: 8px;
   }
   
   .date-filter, .time-filter {
-    font-size: 11px;
-    min-width: 70px;
-    max-width: 100px;
-    padding: 5px 8px;
+    font-size: 13px;
+    min-width: 80px;
+    max-width: 110px;
+    padding: 8px 12px;
   }
+  
+  h1 {
+    font-size: 20px;
+  }
+  
   .photo-carousel {
     width: 98vw;
     max-width: 99vw;
-    height: 200px;
+    height: 300px;
     margin-bottom: 10px;
   }
   .carousel-arrow {
-    width: 48px;
-    height: 48px;
-    font-size: 32px;
+    width: 60px;
+    height: 60px;
+    font-size: 44px;
     top: 80%;
-    background: rgba(0, 0, 0, 0.9);
-    border: 2px solid #fff;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.5);
-    font-weight: bold;
+  }
+  .book-btn-overlay {
+    bottom: 15px;
+    right: 15px;
+    padding: 10px 20px;
+    font-size: 16px;
+    min-width: 80px;
+  }
+  
+  /* Стили для модального окна на мобильных */
+  .modal-overlay {
+    padding-top: 50px;
+    align-items: flex-start;
+  }
+  
+  .modal-content {
+    max-width: 95%;
+    width: 95%;
+    padding: 15px;
+    margin: 0 10px;
+    /* Предотвращение масштабирования */
+    transform: none;
+    -webkit-transform: none;
+  }
+  
+  .form-input, .form-select {
+    font-size: 16px;
+    padding: 12px;
+    margin-bottom: 12px;
+    /* Дополнительная защита от зума */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 }
 
@@ -522,30 +641,33 @@ h1 {
     padding: 4px;
   }
   .header {
-    margin-bottom: 10px;
-    gap: 6px;
+    margin-bottom: 15px;
+    gap: 10px;
+    padding: 12px 10px;
   }
   .filters {
-    gap: 4px;
+    gap: 6px;
     justify-content: center;
   }
   .date-filter, .time-filter {
-    font-size: 10px;
-    min-width: 60px;
-    max-width: 90px;
-    padding: 4px 6px;
+    font-size: 12px;
+    min-width: 70px;
+    max-width: 100px;
+    padding: 6px 10px;
   }
   h1 {
-    font-size: 15px;
-    margin-bottom: 4px;
+    font-size: 18px;
   }
   .restaurant-photo {
-    height: calc(100vh - 100px);
+    height: calc(100vh - 120px);
     margin: 10px 0;
   }
   .modal-content {
     max-width: 98vw;
     padding: 8px;
+    /* Дополнительная защита от масштабирования */
+    transform: none !important;
+    -webkit-transform: none !important;
   }
   .book-btn, .modal-btn {
     font-size: 9px;
@@ -554,18 +676,41 @@ h1 {
   .photo-carousel {
     width: 99vw;
     max-width: 99vw;
-    height: 180px;
+    height: 270px;
     margin-bottom: 8px;
   }
   .carousel-arrow {
-    width: 40px;
-    height: 40px;
-    font-size: 22px;
+    width: 50px;
+    height: 50px;
+    font-size: 36px;
     top: 82%;
     background: rgba(0, 0, 0, 0.9);
     border: 2px solid #fff;
     box-shadow: 0 2px 6px rgba(0,0,0,0.5);
     font-weight: bold;
+  }
+  .book-btn-overlay {
+    bottom: 12px;
+    right: 12px;
+    padding: 8px 16px;
+    font-size: 14px;
+    min-width: 70px;
+  }
+  
+  /* Специальные стили для формы на маленьких экранах */
+  .form-input, .form-select {
+    font-size: 16px !important;
+    padding: 10px !important;
+    margin-bottom: 10px !important;
+    /* Принудительное предотвращение зума */
+    -webkit-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+    transform: none !important;
+    -webkit-transform: none !important;
+  }
+  
+  .modal-overlay {
+    padding-top: 20px;
   }
 }
 
@@ -574,24 +719,25 @@ h1 {
     padding: 2px;
   }
   .header {
-    margin-bottom: 6px;
-    gap: 4px;
+    margin-bottom: 10px;
+    gap: 8px;
+    padding: 10px 8px;
   }
   .filters {
-    gap: 3px;
+    gap: 4px;
     justify-content: center;
   }
   .date-filter, .time-filter {
-    font-size: 9px;
-    min-width: 50px;
-    max-width: 80px;
-    padding: 3px 5px;
+    font-size: 11px;
+    min-width: 60px;
+    max-width: 90px;
+    padding: 5px 8px;
   }
   h1 {
-    font-size: 13px;
+    font-size: 16px;
   }
   .restaurant-photo {
-    height: calc(100vh - 80px);
+    height: calc(100vh - 100px);
     margin: 6px 0;
   }
   .modal-content {
@@ -604,18 +750,25 @@ h1 {
   .photo-carousel {
     width: 98vw;
     max-width: 98vw;
-    height: 140px;
+    height: 240px;
     margin-bottom: 4px;
   }
   .carousel-arrow {
-    width: 32px;
-    height: 32px;
-    font-size: 16px;
+    width: 40px;
+    height: 40px;
+    font-size: 28px;
     top: 85%;
     background: rgba(0, 0, 0, 0.9);
     border: 2px solid #fff;
     box-shadow: 0 2px 4px rgba(0,0,0,0.5);
     font-weight: bold;
+  }
+  .book-btn-overlay {
+    bottom: 10px;
+    right: 10px;
+    padding: 6px 12px;
+    font-size: 12px;
+    min-width: 60px;
   }
   .table-info {
     top: -48px;
@@ -629,24 +782,25 @@ h1 {
     padding: 1px;
   }
   .header {
-    margin-bottom: 2px;
-    gap: 2px;
+    margin-bottom: 8px;
+    gap: 6px;
+    padding: 8px 6px;
   }
   .filters {
-    gap: 2px;
+    gap: 3px;
     justify-content: center;
   }
   .date-filter, .time-filter {
-    font-size: 8px;
-    min-width: 45px;
-    max-width: 70px;
-    padding: 2px 4px;
+    font-size: 10px;
+    min-width: 55px;
+    max-width: 80px;
+    padding: 4px 6px;
   }
   h1 {
-    font-size: 11px;
+    font-size: 14px;
   }
   .restaurant-photo {
-    height: calc(100vh - 60px);
+    height: calc(100vh - 80px);
     margin: 2px 0;
   }
   .modal-content {
@@ -657,19 +811,31 @@ h1 {
     padding: 4px;
   }
   .photo-carousel {
-    width: 94vw;
-    max-width: 250px;
-    height: 100px;
-    margin-bottom: 2px;
+    width: 90vw;
+    max-width: 280px;
+    height: 140px;
+    margin-bottom: 4px;
   }
   .carousel-arrow {
-    width: 32px;
-    height: 32px;
-    font-size: 20px;
-    background: rgba(0, 0, 0, 0.9);
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+    background: rgba(0, 0, 0, 0.8);
     border: 2px solid #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
     font-weight: bold;
+    line-height: 1;
+    text-align: center;
+    padding: 0;
+    margin: 0;
+  }
+  .book-btn-overlay {
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    font-size: 10px;
+    min-width: 50px;
   }
   .table-info {
     top: -36px;
@@ -742,5 +908,203 @@ h1 {
 @media (max-width: 320px) {
   .table-hotspot {
     transform: translateZ(0) scale(0.9);
+  }
+}
+
+/* Кастомный селект времени */
+.custom-time-select {
+  position: relative;
+  display: inline-block;
+}
+
+.custom-select-trigger {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-image: none !important;
+  padding-right: 15px !important;
+}
+
+.select-arrow {
+  font-size: 10px;
+  transition: transform 0.2s;
+  margin-left: 8px;
+}
+
+.custom-select-trigger:hover .select-arrow {
+  transform: rotate(180deg);
+}
+
+.custom-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  margin-top: 2px;
+}
+
+.dropdown-content {
+  background: rgba(0, 0, 0, 0.95);
+  border: 2px solid rgba(46,204,113,0.6);
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.dropdown-option {
+  padding: 10px 15px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.dropdown-option:last-child {
+  border-bottom: none;
+}
+
+.dropdown-option:hover {
+  background: rgba(46,204,113,0.3);
+}
+
+.dropdown-option.selected {
+  background: rgba(46,204,113,0.5);
+  font-weight: bold;
+}
+
+/* Стили для скроллбара в выпадающем списке */
+.dropdown-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-content::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+}
+
+.dropdown-content::-webkit-scrollbar-thumb {
+  background: rgba(46,204,113,0.6);
+  border-radius: 3px;
+}
+
+.dropdown-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(46,204,113,0.8);
+}
+
+/* Мобильные стили для кастомного селекта */
+@media (max-width: 768px) {
+  .dropdown-content {
+    max-height: 120px;
+  }
+  
+  .dropdown-option {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 430px) {
+  .dropdown-content {
+    max-height: 100px;
+  }
+  
+  .dropdown-option {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 375px) {
+  .dropdown-content {
+    max-height: 80px;
+  }
+  
+  .dropdown-option {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 320px) {
+  .dropdown-content {
+    max-height: 70px;
+  }
+  
+  .dropdown-option {
+    padding: 4px 6px;
+    font-size: 10px;
+  }
+}
+
+/* Кнопка бронирования поверх карусели */
+.book-btn-overlay {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 12px;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  background: #3498db;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  z-index: 1004;
+  min-width: 60px;
+  text-align: center;
+}
+
+.book-btn-overlay:hover:not(:disabled) {
+  background: var(--tg-theme-button-color, #0056b3);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.book-btn-overlay:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.book-btn-overlay:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.7;
+  transform: none;
+}
+
+/* Мобильные стили для кнопки */
+@media (max-width: 768px) {
+  .book-btn-overlay {
+    bottom: 10px;
+    right: 10px;
+    padding: 6px 12px;
+    font-size: 11px;
+    min-width: 50px;
+  }
+}
+
+@media (max-width: 430px) {
+  .book-btn-overlay {
+    bottom: 8px;
+    right: 8px;
+    padding: 5px 10px;
+    font-size: 10px;
+    min-width: 45px;
+  }
+}
+
+@media (max-width: 375px) {
+  .book-btn-overlay {
+    bottom: 6px;
+    right: 6px;
+    padding: 4px 8px;
+    font-size: 9px;
+    min-width: 40px;
   }
 }

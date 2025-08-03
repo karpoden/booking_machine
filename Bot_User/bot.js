@@ -13,7 +13,12 @@ app.use(express.json());
 
 app.post('/notify', (req, res) => {
   const { userId, message } = req.body;
-  bot.sendMessage(userId, message);
+  const keyboard = {
+    inline_keyboard: [
+      [{ text: '🏠 Главное меню', callback_data: 'main_menu' }]
+    ]
+  };
+  bot.sendMessage(userId, message, { reply_markup: keyboard });
   res.json({ success: true });
 });
 
