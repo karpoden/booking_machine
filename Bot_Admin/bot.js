@@ -522,7 +522,12 @@ bot.on('callback_query', async (query) => {
         );
         
         if (conflictBooking) {
-          bot.sendMessage(chatId, `❌ Стол №${newTableId} уже забронирован на это время`);
+          const keyboard = {
+            inline_keyboard: [
+              [{ text: '🏠 Главное меню', callback_data: 'main_menu' }]
+            ]
+          };
+          bot.sendMessage(chatId, `❌ Стол №${newTableId} уже забронирован на это время`, { reply_markup: keyboard });
           userStates.delete(chatId);
           return;
         }
@@ -548,10 +553,20 @@ bot.on('callback_query', async (query) => {
           );
         }
         
-        bot.sendMessage(chatId, `✅ Стол изменен на №${newTableId}`);
+        const keyboard = {
+          inline_keyboard: [
+            [{ text: '🏠 Главное меню', callback_data: 'main_menu' }]
+          ]
+        };
+        bot.sendMessage(chatId, `✅ Стол изменен на №${newTableId}`, { reply_markup: keyboard });
       }
     } catch (error) {
-      bot.sendMessage(chatId, '❌ Ошибка изменения стола');
+      const keyboard = {
+        inline_keyboard: [
+          [{ text: '🏠 Главное меню', callback_data: 'main_menu' }]
+        ]
+      };
+      bot.sendMessage(chatId, '❌ Ошибка изменения стола', { reply_markup: keyboard });
     }
     
     userStates.delete(chatId);
