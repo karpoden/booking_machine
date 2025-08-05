@@ -6,20 +6,12 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: var(--tg-theme-bg-color, #0a0a0a);
-  color: var(--tg-theme-text-color, #ffffff);
+  background: url('black_marble_custom.png') no-repeat center center;
+  background-size: cover;
+  background-attachment: fixed;
+  color: #ffffff;
   min-height: 100vh;
   margin: 0;
-  /* padding: 0;
-  overflow-x: hidden;
-  -webkit-user-select: none;
-  user-select: none; */
-  /* Предотвращение масштабирования на мобильных */
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
 }
 
 #root {
@@ -28,20 +20,34 @@ body {
   padding: 20px;
 }
 
-/* @media (max-width: 480px) {
-  #root {
-    padding: 5px;
-  }
-  
-  .container {
-    padding: 10px !important;
-  }
-} */
-
 .container {
-  background: url('black_marble_custom.png') repeat;
-  background-size: 400px 400px;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Оптимизация для мобильных устройств */
+@media (max-width: 768px) {
+  body {
+    background-attachment: scroll;
+  }
+  
+  #root {
+    padding: 10px;
+  }
+  
+  .container {
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+}
+
+@media (max-width: 480px) {
+  #root {
+    padding: 5px;
+  }
 }
