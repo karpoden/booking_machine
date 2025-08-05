@@ -1,175 +1,53 @@
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-  background: #000;
-  /* Защита от Dynamic Island и системных элементов iOS */
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
-}
-
 .container {
-  max-width: 100vw;
+  max-width: 340px;
   margin: 0 auto;
   padding: 10px;
-  min-height: 100vh;
-  background: url('black_marble_custom.png') center center/cover no-repeat #000;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-  position: relative;
-  z-index: 1;
-  overflow-x: hidden;
-  /* Дополнительная защита для контейнера */
-  padding-top: max(10px, env(safe-area-inset-top));
-  padding-bottom: max(10px, env(safe-area-inset-bottom));
-}
-
-/* Специальные стили для iPhone с Dynamic Island */
-@supports (padding: max(0px)) {
-  .header {
-    padding-top: max(10px, env(safe-area-inset-top));
-  }
-}
-
-/* Медиа-запрос для iPhone с вырезами */
-@media screen and (device-width: 375px) and (device-height: 812px),
-       screen and (device-width: 390px) and (device-height: 844px),
-       screen and (device-width: 414px) and (device-height: 896px),
-       screen and (device-width: 428px) and (device-height: 926px),
-       screen and (device-width: 393px) and (device-height: 852px),
-       screen and (device-width: 430px) and (device-height: 932px) {
-  .header {
-    padding-top: max(15px, env(safe-area-inset-top));
-    margin-bottom: 20px;
-  }
-  
-  .filters {
-    margin-top: 5px;
-  }
-  
-  .restaurant-photo {
-    height: calc(100vh - 140px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-  }
 }
 
 .header {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 25px;
-  flex-wrap: wrap;
-  gap: 15px;
-  padding: 20px 15px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 12px;
-  border: 1px solid rgba(46, 204, 113, 0.2);
+  margin-bottom: 18px;
 }
 
 h1 {
   color: #ffffff;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-  font-size: 22px;
-  margin: 0;
-  flex-shrink: 0;
-  font-weight: bold;
+  font-size: 17px;
+  margin: 0 0 8px 0;
 }
 
 .filters {
   display: flex;
   flex-direction: row;
-  gap: 12px;
+  gap: 6px;
+  width: 100%;
+  justify-content: center;
   align-items: center;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  background: none;
-  border-radius: 0;
-  padding: 0;
-  box-shadow: none;
-  margin: 0;
 }
 
 .date-filter, .time-filter {
-  padding: 10px 15px;
-  border: 2px solid rgba(46,204,113,0.6);
-  border-radius: 8px;
-  background: rgba(46,204,113,0.25);
+  padding: 6px 8px;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.1);
   color: #ffffff;
-  font-size: 14px;
-  min-width: 100px;
-  max-width: 140px;
-  margin: 0;
-  box-shadow: none;
-  flex-shrink: 0;
-  font-weight: 500;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 8px center;
-  background-size: 16px;
-  padding-right: 30px;
-}
-
-/* Стили для опций в селекте */
-.date-filter option, .time-filter option {
-  background: rgba(0, 0, 0, 0.9);
-  color: #ffffff;
-  padding: 8px 12px;
-  border: none;
-}
-
-/* Ограничение высоты выпадающего списка */
-.time-filter {
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-/* Стили для мобильных устройств */
-@media (max-width: 768px) {
-  .time-filter {
-    max-height: 150px;
-  }
-  
-  .date-filter option, .time-filter option {
-    padding: 10px 12px;
-    font-size: 14px;
-  }
-}
-
-.filters select.time-filter:last-child {
-  min-width: 120px;
+  font-size: 11px;
+  width: 80px;
+  text-align: center;
 }
 
 .restaurant-photo {
   position: relative;
   width: 100%;
-  height: calc(100vh - 120px);
   margin: 20px 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  /* Добавляем стабильность */
-  transform: translateZ(0);
-  backface-visibility: hidden;
 }
 
 .restaurant-image {
   width: 100%;
-  height: 100%;
-  object-fit: contain;
+  height: auto;
   border-radius: 8px;
-  max-width: 100%;
-  max-height: 100%;
-  position: relative;
 }
 
 .table-hotspot {
@@ -178,10 +56,6 @@ h1 {
   cursor: pointer;
   transition: all 0.3s ease;
   background: transparent;
-  transform-origin: center;
-  /* Добавляем стабильность при масштабировании */
-  transform: translateZ(0);
-  will-change: transform;
 }
 
 .table-hotspot.available {
@@ -227,29 +101,19 @@ h1 {
 }
 
 .table-info {
-  background: rgba(0, 0, 0, 0.9);
-  border: 2px solid rgba(46,204,113,0.6);
-  border-radius: 12px;
-  padding: 10px;
-  color: white;
-  text-align: center;
-  font-size: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-  position: relative;
-  z-index: 1000;
-  animation: fadeIn 0.2s ease-in-out;
-  transition: opacity 0.2s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  padding: 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  z-index: 30;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  max-width: 200px;
+  min-width: 120px;
 }
 
 .table-info p {
@@ -273,8 +137,6 @@ h1 {
   box-shadow: 0 2px 4px rgba(0,0,0,0.3);
   margin: 0 auto;
   display: block;
-  z-index: 1001;
-  position: relative;
 }
 
 .table-5 {
@@ -332,101 +194,54 @@ h1 {
 
 /* Карусель фотографий */
 .photo-carousel {
-  width: 280px;
-  height: 160px;
-  margin-bottom: 10px;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.8);
-  border: 1px solid rgba(0, 255, 0, 0.3);
+  width: 100px;
+  height: 60px;
+  margin-bottom: 8px;
   position: relative;
   overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.2s, opacity 0.2s ease-in-out;
-  -webkit-tap-highlight-color: transparent;
-  z-index: 1002;
-  animation: carouselFadeIn 0.3s ease-in-out;
+  border-radius: 4px;
+  user-select: none;
+  background: rgba(0, 0, 0, 0.3);
+  touch-action: pan-y pinch-zoom;
 }
 
-@keyframes carouselFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.photo-carousel:hover {
-  transform: scale(1.02);
-}
-
-.photo-carousel:active {
-  transform: scale(0.98);
-}
-
-.photo-carousel:focus {
-  outline: none;
-}
-
-/* Мобильные стили для лучшего touch */
-@media (max-width: 768px) {
-  .photo-carousel {
-    touch-action: manipulation;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
-  }
-  
-  .photo-carousel:active {
-    transform: scale(0.95);
-    transition: transform 0.1s;
-  }
+.carousel-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
 }
 
 .carousel-arrow {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 32px;
-  height: 32px;
-  background: rgba(0, 0, 0, 0.8);
-  border: 2px solid #fff;
-  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: white;
-  font-size: 20px;
-  font-weight: bold;
-  opacity: 0.9;
-  transition: all 0.2s;
-  z-index: 1003;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  line-height: 1;
-  text-align: center;
-  padding: 0;
-  margin: 0;
+  font-size: 16px;
+  opacity: 1;
+  z-index: 2;
+  border-radius: 50%;
+  transition: background 0.2s;
 }
 
 .carousel-arrow:hover {
-  background: rgba(0, 0, 0, 0.95);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.7);
-}
-
-.carousel-arrow:active {
-  background: rgba(0,0,0,0.97);
-  opacity: 1;
+  background: rgba(0, 0, 0, 0.9);
 }
 
 .carousel-prev {
-  left: 8px;
+  left: 2px;
 }
 
 .carousel-next {
-  right: 8px;
+  right: 2px;
 }
 
 .table-photo {
@@ -434,14 +249,37 @@ h1 {
   height: 100%;
   object-fit: cover;
   position: absolute;
-  opacity: 0;
-  transition: opacity 0.3s;
-  border-radius: 16px;
-  cursor: pointer;
+  top: 0;
+  left: 0;
+  opacity: 1;
+  transition: transform 0.3s ease-in-out;
 }
 
-.table-photo.active {
-  opacity: 1;
+.carousel-indicators {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+  z-index: 3;
+}
+
+.indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.indicator.active {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.indicator:hover {
+  background: rgba(255, 255, 255, 0.8);
 }
 
 /* Модальные окна */
@@ -451,51 +289,67 @@ h1 {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.9);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding-top: 150px;
-  z-index: 1000;
-  /* Предотвращение масштабирования */
+  padding: 20px;
+  z-index: 9999;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  box-sizing: border-box;
 }
 
 .modal-content {
-  background: url('black_marble_custom.png') repeat;
-  background-size: 400px 400px;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
   border-radius: 12px;
-  padding: 20px;
+  padding: 40px 30px;
   max-width: 350px;
   width: 90%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  /* Предотвращение масштабирования на мобильных */
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  min-height: 60vh;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  position: relative;
+  transform: none;
+  -webkit-transform: none;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  z-index: 10000;
+  margin: 0 auto;
+  left: 0;
+  right: 0;
 }
 
 .modal-content h2 {
   color: #ffffff;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   text-align: center;
   font-size: 18px;
+  margin-top: 0;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
 }
 
 .modal-content p {
   color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   line-height: 1.4;
+  text-align: center;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
 }
 
 .checkbox-label {
   display: flex;
   align-items: center;
+  justify-content: center;
   color: #ffffff;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
   font-size: 14px;
+  margin-top: 20px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
 }
 
 .checkbox-label input {
@@ -504,14 +358,16 @@ h1 {
 
 .modal-btn {
   width: 100%;
-  padding: 12px;
-  border: 1px solid rgba(255,255,255,0.2);
+  padding: 15px;
+  border: 2px solid rgba(255,255,255,0.3);
   border-radius: 8px;
   background: var(--tg-theme-button-color, #007bff);
   color: var(--tg-theme-button-text-color, #ffffff);
   font-weight: bold;
+  font-size: 16px;
   cursor: pointer;
   transition: background 0.2s;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 
 .modal-btn:disabled {
@@ -520,37 +376,36 @@ h1 {
 }
 
 .booking-info {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 15px;
   border-radius: 6px;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255,255,255,0.3);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .booking-info p {
-  margin: 5px 0;
+  margin: 8px 0;
   font-size: 14px;
+  color: #ffffff;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
 }
 
 .form-input, .form-select {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   margin-bottom: 15px;
-  border: 1px solid rgba(255,255,255,0.3);
+  border: 2px solid rgba(255,255,255,0.4);
   border-radius: 6px;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.15);
   color: #ffffff;
   font-size: 14px;
-  /* Предотвращение масштабирования на мобильных */
-  font-size: 16px; /* Минимальный размер для предотвращения зума */
-  -webkit-appearance: none;
-  appearance: none;
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
+  margin-top: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .form-input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 16px; /* Предотвращение зума на iOS */
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .duration-selector {
@@ -562,155 +417,143 @@ h1 {
   color: #ffffff;
   margin-bottom: 8px;
   font-size: 14px;
+  font-weight: 500;
 }
 
-@media (max-width: 600px) {
-  .header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-    padding: 15px 12px;
+/* Предотвращение zoom на мобильных устройствах */
+@media (max-width: 768px) {
+  .form-input, .form-select {
+    font-size: 16px; /* Минимальный размер для предотвращения zoom на iOS */
+    padding: 12px 10px;
+    margin-top: 10px;
+  }
+  
+  .duration-selector label {
+    margin-bottom: 10px;
+    font-size: 15px;
+  }
+  
+  .booking-info {
     margin-bottom: 20px;
   }
   
-  .filters {
-    justify-content: center;
-    gap: 8px;
+  .booking-info p {
+    margin: 6px 0;
+    font-size: 15px;
   }
   
-  .date-filter, .time-filter {
+  .checkbox-label {
+    margin-top: 15px;
     font-size: 13px;
-    min-width: 80px;
-    max-width: 110px;
-    padding: 8px 12px;
   }
   
-  h1 {
-    font-size: 20px;
-  }
-  
-  .photo-carousel {
-    width: 98vw;
-    max-width: 99vw;
-    height: 300px;
-    margin-bottom: 10px;
-  }
-  .carousel-arrow {
-    width: 60px;
-    height: 60px;
-    font-size: 44px;
-    top: 80%;
-  }
-  .book-btn-overlay {
-    bottom: 15px;
-    right: 15px;
-    padding: 10px 20px;
+  .modal-content h2 {
     font-size: 16px;
-    min-width: 80px;
-  }
-  
-  /* Стили для модального окна на мобильных */
-  .modal-overlay {
-    padding-top: 50px;
-    align-items: flex-start;
   }
   
   .modal-content {
-    max-width: 95%;
+    min-height: 70vh;
+    max-height: 85vh;
+    padding: 30px 20px;
     width: 95%;
-    padding: 15px;
-    margin: 0 10px;
-    /* Предотвращение масштабирования */
-    transform: none;
-    -webkit-transform: none;
   }
   
+  .modal-overlay {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
   .form-input, .form-select {
     font-size: 16px;
-    padding: 12px;
-    margin-bottom: 12px;
-    /* Дополнительная защита от зума */
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
+    padding: 10px 8px;
+    margin-top: 8px;
+  }
+  
+  .duration-selector label {
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+  
+  .booking-info {
+    margin-bottom: 18px;
+  }
+  
+  .booking-info p {
+    margin: 5px 0;
+    font-size: 14px;
+  }
+  
+  .checkbox-label {
+    margin-top: 12px;
+    font-size: 12px;
+  }
+  
+  .modal-content h2 {
+    font-size: 15px;
+  }
+  
+  .modal-content {
+    min-height: 75vh;
+    max-height: 90vh;
+    padding: 25px 15px;
+    width: 98%;
+  }
+  
+  .modal-overlay {
+    padding: 5px;
   }
 }
 
 @media (max-width: 430px) {
   .container {
-    max-width: 100vw;
+    max-width: 98vw;
     padding: 4px;
   }
   .header {
-    margin-bottom: 15px;
-    gap: 10px;
-    padding: 12px 10px;
+    margin-bottom: 10px;
   }
   .filters {
-    gap: 6px;
-    justify-content: center;
+    gap: 4px;
+    align-items: center;
   }
   .date-filter, .time-filter {
-    font-size: 12px;
-    min-width: 70px;
-    max-width: 100px;
-    padding: 6px 10px;
+    font-size: 10px;
+    width: 70px;
+    padding: 4px 5px;
   }
   h1 {
-    font-size: 18px;
-  }
-  .restaurant-photo {
-    height: calc(100vh - 120px);
-    margin: 10px 0;
+    font-size: 15px;
+    margin-bottom: 4px;
   }
   .modal-content {
     max-width: 98vw;
-    padding: 8px;
-    /* Дополнительная защита от масштабирования */
-    transform: none !important;
-    -webkit-transform: none !important;
+    padding: 20px 15px;
+    margin: 5px;
+    min-height: 80vh;
+    max-height: 95vh;
+    width: 98%;
+  }
+  .modal-overlay {
+    padding: 5px;
   }
   .book-btn, .modal-btn {
     font-size: 9px;
     padding: 8px;
   }
   .photo-carousel {
-    width: 99vw;
-    max-width: 99vw;
-    height: 270px;
-    margin-bottom: 8px;
+    width: 80px;
+    height: 48px;
+    margin-bottom: 4px;
   }
   .carousel-arrow {
-    width: 50px;
-    height: 50px;
-    font-size: 36px;
-    top: 82%;
-    background: rgba(0, 0, 0, 0.9);
-    border: 2px solid #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-    font-weight: bold;
-  }
-  .book-btn-overlay {
-    bottom: 12px;
-    right: 12px;
-    padding: 8px 16px;
+    width: 20px;
+    height: 20px;
     font-size: 14px;
-    min-width: 70px;
   }
-  
-  /* Специальные стили для формы на маленьких экранах */
-  .form-input, .form-select {
-    font-size: 16px !important;
-    padding: 10px !important;
-    margin-bottom: 10px !important;
-    /* Принудительное предотвращение зума */
-    -webkit-text-size-adjust: 100% !important;
-    text-size-adjust: 100% !important;
-    transform: none !important;
-    -webkit-transform: none !important;
-  }
-  
-  .modal-overlay {
-    padding-top: 20px;
+  .indicator {
+    width: 4px;
+    height: 4px;
   }
 }
 
@@ -719,61 +562,51 @@ h1 {
     padding: 2px;
   }
   .header {
-    margin-bottom: 10px;
-    gap: 8px;
-    padding: 10px 8px;
+    margin-bottom: 6px;
   }
   .filters {
-    gap: 4px;
-    justify-content: center;
+    gap: 3px;
   }
   .date-filter, .time-filter {
-    font-size: 11px;
-    min-width: 60px;
-    max-width: 90px;
-    padding: 5px 8px;
+    font-size: 9px;
+    width: 60px;
+    padding: 3px 4px;
   }
   h1 {
-    font-size: 16px;
-  }
-  .restaurant-photo {
-    height: calc(100vh - 100px);
-    margin: 6px 0;
+    font-size: 13px;
   }
   .modal-content {
-    padding: 4px;
+    padding: 15px 10px;
+    margin: 3px;
+    min-height: 85vh;
+    max-height: 98vh;
+    width: 99%;
+  }
+  .modal-overlay {
+    padding: 3px;
   }
   .book-btn, .modal-btn {
     font-size: 8px;
     padding: 6px;
   }
   .photo-carousel {
-    width: 98vw;
-    max-width: 98vw;
-    height: 240px;
+    width: 70px;
+    height: 42px;
     margin-bottom: 4px;
-  }
-  .carousel-arrow {
-    width: 40px;
-    height: 40px;
-    font-size: 28px;
-    top: 85%;
-    background: rgba(0, 0, 0, 0.9);
-    border: 2px solid #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    font-weight: bold;
-  }
-  .book-btn-overlay {
-    bottom: 10px;
-    right: 10px;
-    padding: 6px 12px;
-    font-size: 12px;
-    min-width: 60px;
   }
   .table-info {
     top: -48px;
     padding: 4px;
     font-size: 10px;
+  }
+  .carousel-arrow {
+    width: 18px;
+    height: 18px;
+    font-size: 12px;
+  }
+  .indicator {
+    width: 3px;
+    height: 3px;
   }
 }
 
@@ -782,28 +615,27 @@ h1 {
     padding: 1px;
   }
   .header {
-    margin-bottom: 8px;
-    gap: 6px;
-    padding: 8px 6px;
+    margin-bottom: 2px;
   }
   .filters {
-    gap: 3px;
-    justify-content: center;
+    gap: 2px;
   }
   .date-filter, .time-filter {
-    font-size: 10px;
-    min-width: 55px;
-    max-width: 80px;
-    padding: 4px 6px;
+    font-size: 8px;
+    width: 50px;
+    padding: 2px 3px;
   }
   h1 {
-    font-size: 14px;
-  }
-  .restaurant-photo {
-    height: calc(100vh - 80px);
-    margin: 2px 0;
+    font-size: 11px;
   }
   .modal-content {
+    padding: 10px 5px;
+    margin: 2px;
+    min-height: 90vh;
+    max-height: 99vh;
+    width: 100%;
+  }
+  .modal-overlay {
     padding: 2px;
   }
   .book-btn, .modal-btn {
@@ -811,300 +643,142 @@ h1 {
     padding: 4px;
   }
   .photo-carousel {
-    width: 90vw;
-    max-width: 280px;
-    height: 140px;
-    margin-bottom: 4px;
-  }
-  .carousel-arrow {
-    width: 28px;
-    height: 28px;
-    font-size: 16px;
-    background: rgba(0, 0, 0, 0.8);
-    border: 2px solid #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-    font-weight: bold;
-    line-height: 1;
-    text-align: center;
-    padding: 0;
-    margin: 0;
-  }
-  .book-btn-overlay {
-    bottom: 6px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 4px 8px;
-    font-size: 10px;
-    min-width: 50px;
+    width: 60px;
+    height: 36px;
+    margin-bottom: 2px;
   }
   .table-info {
     top: -36px;
     padding: 2px;
     font-size: 9px;
   }
+  .carousel-arrow {
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+  }
+  .indicator {
+    width: 2px;
+    height: 2px;
+  }
 }
 
-/* Стили для больших экранов */
-@media (min-width: 768px) {
-  .container {
-    max-width: 800px;
-    padding: 20px;
+/* Дополнительные стили для предотвращения проблем с z-index */
+.table-hotspot {
+  position: absolute;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: transparent;
+  z-index: 1;
+}
+
+.table-hotspot:hover {
+  background: rgba(46, 204, 113, 0.45) !important;
+  box-shadow: 0 0 24px 8px rgba(46, 204, 113, 0.6), 0 0 12px 4px rgba(46, 204, 113, 0.3) inset;
+  z-index: 20;
+}
+
+.table-info {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  padding: 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  z-index: 30;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+/* Адаптивное позиционирование для предотвращения выхода за экран */
+@media (max-width: 430px) {
+  .table-info {
+    max-width: 150px;
+    min-width: 100px;
+    top: -50px;
+    padding: 6px;
+  }
+}
+
+@media (max-width: 375px) {
+  .table-info {
+    max-width: 130px;
+    min-width: 90px;
+    top: -45px;
+    padding: 4px;
+  }
+}
+
+@media (max-width: 320px) {
+  .table-info {
+    max-width: 110px;
+    min-width: 80px;
+    top: -40px;
+    padding: 3px;
+  }
+}
+
+/* Улучшения для touch устройств */
+@media (hover: none) and (pointer: coarse) {
+  .carousel-arrow {
+    opacity: 0.8;
   }
   
-  .restaurant-photo {
-    height: calc(100vh - 200px);
-    margin: 30px 0;
+  .carousel-arrow:active {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.9);
   }
   
-  .restaurant-image {
-    max-width: 90%;
-    max-height: 90%;
+  .indicator:active {
+    background: rgba(255, 255, 255, 1);
+  }
+}
+
+/* Специальные стили для больших экранов (ПК) */
+@media (min-width: 769px) {
+  .modal-overlay {
+    padding: 40px 40px 40px 0;
+    justify-content: flex-start;
   }
   
-  h1 {
-    font-size: 24px;
-    margin-bottom: 15px;
-  }
-  
-  .filters {
-    gap: 15px;
-  }
-  
-  .date-filter, .time-filter {
-    font-size: 16px;
-    padding: 10px;
-    min-width: 120px;
+  .modal-content {
+    max-width: 400px;
+    width: auto;
+    min-width: 350px;
+    min-height: 50vh;
+    max-height: 70vh;
+    margin: 0;
+    position: relative;
+    left: 0;
+    right: auto;
   }
 }
 
 @media (min-width: 1024px) {
-  .container {
-    max-width: 1200px;
+  .modal-overlay {
+    padding: 50px 50px 50px 0;
   }
   
-  .restaurant-photo {
-    height: calc(100vh - 250px);
+  .modal-content {
+    max-width: 450px;
+    min-width: 400px;
+    min-height: 45vh;
+    max-height: 65vh;
+  }
+}
+
+@media (min-width: 1440px) {
+  .modal-overlay {
+    padding: 60px 60px 60px 0;
   }
   
-  .restaurant-image {
-    max-width: 85%;
-    max-height: 85%;
-  }
-}
-
-/* Стабилизация hotspot'ов на разных экранах */
-@media (max-width: 768px) {
-  .table-hotspot {
-    transform: translateZ(0) scale(1);
-  }
-}
-
-@media (max-width: 480px) {
-  .table-hotspot {
-    transform: translateZ(0) scale(0.95);
-  }
-}
-
-@media (max-width: 320px) {
-  .table-hotspot {
-    transform: translateZ(0) scale(0.9);
-  }
-}
-
-/* Кастомный селект времени */
-.custom-time-select {
-  position: relative;
-  display: inline-block;
-}
-
-.custom-select-trigger {
-  cursor: pointer;
-  user-select: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background-image: none !important;
-  padding-right: 15px !important;
-}
-
-.select-arrow {
-  font-size: 10px;
-  transition: transform 0.2s;
-  margin-left: 8px;
-}
-
-.custom-select-trigger:hover .select-arrow {
-  transform: rotate(180deg);
-}
-
-.custom-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  margin-top: 2px;
-}
-
-.dropdown-content {
-  background: rgba(0, 0, 0, 0.95);
-  border: 2px solid rgba(46,204,113,0.6);
-  border-radius: 8px;
-  max-height: 200px;
-  overflow-y: auto;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-
-.dropdown-option {
-  padding: 10px 15px;
-  color: #ffffff;
-  cursor: pointer;
-  transition: background 0.2s;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-
-.dropdown-option:last-child {
-  border-bottom: none;
-}
-
-.dropdown-option:hover {
-  background: rgba(46,204,113,0.3);
-}
-
-.dropdown-option.selected {
-  background: rgba(46,204,113,0.5);
-  font-weight: bold;
-}
-
-/* Стили для скроллбара в выпадающем списке */
-.dropdown-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.dropdown-content::-webkit-scrollbar-track {
-  background: rgba(255,255,255,0.1);
-  border-radius: 3px;
-}
-
-.dropdown-content::-webkit-scrollbar-thumb {
-  background: rgba(46,204,113,0.6);
-  border-radius: 3px;
-}
-
-.dropdown-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(46,204,113,0.8);
-}
-
-/* Мобильные стили для кастомного селекта */
-@media (max-width: 768px) {
-  .dropdown-content {
-    max-height: 120px;
-  }
-  
-  .dropdown-option {
-    padding: 8px 12px;
-    font-size: 13px;
-  }
-}
-
-@media (max-width: 430px) {
-  .dropdown-content {
-    max-height: 100px;
-  }
-  
-  .dropdown-option {
-    padding: 6px 10px;
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 375px) {
-  .dropdown-content {
-    max-height: 80px;
-  }
-  
-  .dropdown-option {
-    padding: 5px 8px;
-    font-size: 11px;
-  }
-}
-
-@media (max-width: 320px) {
-  .dropdown-content {
-    max-height: 70px;
-  }
-  
-  .dropdown-option {
-    padding: 4px 6px;
-    font-size: 10px;
-  }
-}
-
-/* Кнопка бронирования поверх карусели */
-.book-btn-overlay {
-  position: absolute;
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 6px 12px;
-  border: 2px solid #fff;
-  border-radius: 8px;
-  background: #3498db;
-  color: white;
-  font-weight: bold;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  z-index: 1004;
-  min-width: 60px;
-  text-align: center;
-}
-
-.book-btn-overlay:hover:not(:disabled) {
-  background: var(--tg-theme-button-color, #0056b3);
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-}
-
-.book-btn-overlay:active:not(:disabled) {
-  transform: scale(0.95);
-}
-
-.book-btn-overlay:disabled {
-  background: #6c757d;
-  cursor: not-allowed;
-  opacity: 0.7;
-  transform: none;
-}
-
-/* Мобильные стили для кнопки */
-@media (max-width: 768px) {
-  .book-btn-overlay {
-    bottom: 10px;
-    right: 10px;
-    padding: 6px 12px;
-    font-size: 11px;
-    min-width: 50px;
-  }
-}
-
-@media (max-width: 430px) {
-  .book-btn-overlay {
-    bottom: 8px;
-    right: 8px;
-    padding: 5px 10px;
-    font-size: 10px;
-    min-width: 45px;
-  }
-}
-
-@media (max-width: 375px) {
-  .book-btn-overlay {
-    bottom: 6px;
-    right: 6px;
-    padding: 4px 8px;
-    font-size: 9px;
-    min-width: 40px;
+  .modal-content {
+    max-width: 500px;
+    min-width: 450px;
+    min-height: 40vh;
+    max-height: 60vh;
   }
 }
