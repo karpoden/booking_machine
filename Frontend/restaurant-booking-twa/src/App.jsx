@@ -50,6 +50,8 @@ function App() {
   const [touchStart, setTouchStart] = useState(null)
   const [touchEnd, setTouchEnd] = useState(null)
   const [carouselDirection, setCarouselDirection] = useState({})
+  const [fullscreenPhoto, setFullscreenPhoto] = useState(null)
+  const [fullscreenPhotoIndex, setFullscreenPhotoIndex] = useState(0)
 
   useEffect(() => {
     // Инициализация Telegram Web App
@@ -116,27 +118,49 @@ function App() {
     return availablePhotos[tableNumber] || []
   }
 
-  const loadTablePhotos = () => {
+  const loadTablePhotos = async () => {
     const photos = {}
     const photoIndex = {}
+    
     for (let i = 1; i <= 9; i++) {
       const tablePhotos = []
-      let photoNum = 1
-      // Пытаемся загрузить до 5 фото на стол (можно увеличить лимит при необходимости)
-      for (let j = 1; j <= 5; j++) {
-        // Проверяем, существует ли файл (косвенно, через try/catch Image)
-        const img = new window.Image()
-        img.src = `table-${i}/photo${j}.png`
-        // В реальном проекте лучше сделать fetch HEAD или хранить список файлов на сервере
-        tablePhotos.push(`table-${i}/photo${j}.png`)
-        // Можно добавить проверку на 404, но для простоты добавляем все подряд
+      
+      // Проверяем существование фотографий для каждого стола
+      for (let j = 1; j <= 2; j++) {
+        try {
+          // Создаем Image объект для проверки существования
+          const img = new Image()
+          img.src = `/table-${i}/photo${j}.png`
+          
+          // Ждем загрузки или ошибки
+          await new Promise((resolve, reject) => {
+            img.onload = () => {
+              tablePhotos.push(`/table-${i}/photo${j}.png`)
+              resolve()
+            }
+            img.onerror = () => {
+              // Если файл не найден, просто пропускаем его
+              resolve()
+            }
+            // Таймаут на случай если изображение не загружается
+            setTimeout(resolve, 1000)
+          })
+        } catch (error) {
+          // Игнорируем ошибки и продолжаем
+          console.log(`Ошибка загрузки фото для стола ${i}, фото ${j}:`, error)
+        }
       }
-      // Фильтруем только реально существующие фото (если нужно)
-      photos[i] = tablePhotos.filter((src, idx) => idx === 0 || window.location.origin + '/'+ src)
+      
+      // Используем только реальные фотографии, которые найдены
+      photos[i] = tablePhotos
       photoIndex[i] = 0
     }
+    
     setAvailablePhotos(photos)
     setCurrentPhotoIndex(photoIndex)
+    
+    // Отладочная информация
+    console.log('Загруженные фотографии:', photos)
   }
 
   const nextPhoto = (tableNumber) => {
@@ -201,6 +225,30 @@ function App() {
       nextPhoto(tableNumber)
     } else if (distance < -minSwipeDistance) {
       prevPhoto(tableNumber)
+    }
+  }
+
+  const openFullscreenPhoto = (tableNumber, photoIndex) => {
+    setFullscreenPhoto(tableNumber)
+    setFullscreenPhotoIndex(photoIndex)
+  }
+
+  const closeFullscreenPhoto = () => {
+    setFullscreenPhoto(null)
+    setFullscreenPhotoIndex(0)
+  }
+
+  const nextFullscreenPhoto = () => {
+    const photos = getTablePhotos(fullscreenPhoto)
+    if (photos.length > 1) {
+      setFullscreenPhotoIndex((fullscreenPhotoIndex + 1) % photos.length)
+    }
+  }
+
+  const prevFullscreenPhoto = () => {
+    const photos = getTablePhotos(fullscreenPhoto)
+    if (photos.length > 1) {
+      setFullscreenPhotoIndex(fullscreenPhotoIndex === 0 ? photos.length - 1 : fullscreenPhotoIndex - 1)
     }
   }
 
@@ -327,7 +375,16 @@ function App() {
             onClick={() => setHoveredTable(hoveredTable === tableNumber ? null : tableNumber)}
           >
             {hoveredTable === tableNumber && (
-              <div className="table-info">
+              <div className="table-info" style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+                <button 
+                  className="close-button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setHoveredTable(null);
+                  }}
+                >
+                  ×
+                </button>
                 {getTablePhotos(tableNumber).length > 0 && (
                   <div 
                     className="photo-carousel"
@@ -345,6 +402,14 @@ function App() {
                           style={{ 
                             transform: `translateX(${(index - (currentPhotoIndex[tableNumber] || 0)) * 100}%)`,
                             transition: carouselDirection[tableNumber] ? 'transform 0.3s ease-in-out' : 'none'
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openFullscreenPhoto(tableNumber, index);
+                          }}
+                          onError={(e) => {
+                            // Скрываем изображение если оно не загрузилось
+                            e.target.style.display = 'none';
                           }}
                         />
                       ))}
@@ -492,6 +557,61 @@ function App() {
             >
               Подтвердить бронирование
             </button>
+          </div>
+        </div>
+      )}
+      
+      {/* Полноэкранный просмотр фотографий */}
+      {fullscreenPhoto && (
+        <div className="fullscreen-overlay" onClick={closeFullscreenPhoto}>
+          <div className="fullscreen-content" onClick={(e) => e.stopPropagation()}>
+            <button 
+              className="fullscreen-close-button"
+              onClick={closeFullscreenPhoto}
+            >
+              ×
+            </button>
+            
+            {getTablePhotos(fullscreenPhoto).length > 1 && (
+              <>
+                <button 
+                  className="fullscreen-arrow fullscreen-prev"
+                  onClick={prevFullscreenPhoto}
+                >
+                  ‹
+                </button>
+                <button 
+                  className="fullscreen-arrow fullscreen-next"
+                  onClick={nextFullscreenPhoto}
+                >
+                  ›
+                </button>
+                
+                <div className="fullscreen-indicators">
+                  {getTablePhotos(fullscreenPhoto).map((_, index) => (
+                    <div 
+                      key={index}
+                      className={`fullscreen-indicator ${index === fullscreenPhotoIndex ? 'active' : ''}`}
+                      onClick={() => setFullscreenPhotoIndex(index)}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+            
+            <img 
+              src={getTablePhotos(fullscreenPhoto)[fullscreenPhotoIndex]}
+              alt={`Стол ${fullscreenPhoto}`}
+              className="fullscreen-photo"
+              onError={(e) => {
+                // Скрываем изображение если оно не загрузилось
+                e.target.style.display = 'none';
+              }}
+            />
+            
+            <div className="fullscreen-counter">
+              {fullscreenPhotoIndex + 1} / {getTablePhotos(fullscreenPhoto).length}
+            </div>
           </div>
         </div>
       )}
