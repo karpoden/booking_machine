@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
+// Логика времени бронирования:
+// - Рабочие часы: 12:00 - 02:00 (следующего дня)
+// - Переключение на завтра происходит после 22:00
+// - Доступные слоты: каждые 30 минут с 12:00 до 02:00
+// - Продолжительность: 2, 4 или 6 часов (с учетом рабочего времени)
+
 // Удалить SVGMap
 
 function App() {
@@ -9,9 +15,11 @@ function App() {
   const getInitialDate = () => {
     const now = new Date()
     const currentHour = now.getHours()
-    // Если сейчас между 00:00 и 12:00, показываем сегодня
-    // Если после 23:30, показываем завтра
-    if (currentHour >= 23 && now.getMinutes() >= 30) {
+    const currentMinute = now.getMinutes()
+    
+    // Если сейчас после 22:00, показываем завтра
+    // Это дает больше времени для планирования
+    if (currentHour >= 22) {
       const tomorrow = new Date(now)
       tomorrow.setDate(tomorrow.getDate() + 1)
       return tomorrow.toISOString().split('T')[0]
@@ -30,10 +38,14 @@ function App() {
       const nextHour = currentMinute < 30 ? currentHour : currentHour + 1
       
       if (nextHour < 24) {
-        return `${nextHour.toString().padStart(2, '0')}:${nextHalfHour === 30 ? '30' : '00'}`
+        const time = `${nextHour.toString().padStart(2, '0')}:${nextHalfHour === 30 ? '30' : '00'}`
+        console.log('Установлено время:', time)
+        return time
       }
     }
     
+    // По умолчанию 18:00 для удобства пользователей
+    console.log('Установлено время по умолчанию: 18:00')
     return '18:00'
   }
   
@@ -50,26 +62,116 @@ function App() {
   const [touchStart, setTouchStart] = useState(null)
   const [touchEnd, setTouchEnd] = useState(null)
   const [carouselDirection, setCarouselDirection] = useState({})
+  const [fullscreenPhoto, setFullscreenPhoto] = useState(null)
+  const [fullscreenPhotoIndex, setFullscreenPhotoIndex] = useState(0)
 
   useEffect(() => {
     // Инициализация Telegram Web App
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.expand()
     }
+    
+    // Проверяем, что выбранное время корректно
+    const validateInitialTime = () => {
+      const timeSlots = []
+      for (let hour = 12; hour <= 26; hour++) {
+        const displayHour = hour >= 24 ? hour - 24 : hour
+        const displayHourStr = displayHour.toString().padStart(2, '0')
+        timeSlots.push(`${displayHourStr}:00`)
+        if (hour < 26) {
+          timeSlots.push(`${displayHourStr}:30`)
+        }
+      }
+      
+      if (!timeSlots.includes(selectedTime)) {
+        console.log('Начальное время не найдено в слотах, устанавливаем 18:00')
+        setSelectedTime('18:00')
+      }
+    }
+    
+    validateInitialTime()
     fetchTables()
     loadTablePhotos()
   }, [selectedDate, selectedTime, selectedDuration])
 
+  // Проверяем, что выбранное время существует в доступных слотах
+  useEffect(() => {
+    const timeSlots = []
+    
+    // Генерируем временные слоты с 12:00 до 02:00 следующего дня
+    for (let hour = 12; hour <= 26; hour++) {
+      const displayHour = hour >= 24 ? hour - 24 : hour
+      const displayHourStr = displayHour.toString().padStart(2, '0')
+      
+      // Добавляем :00
+      timeSlots.push(`${displayHourStr}:00`)
+      
+      // Добавляем :30 (кроме 02:30, так как работаем до 02:00)
+      if (hour < 26) {
+        timeSlots.push(`${displayHourStr}:30`)
+      }
+    }
+    
+    // Фильтруем прошедшее время только для сегодняшней даты
+    const now = new Date()
+    const today = now.toISOString().split('T')[0]
+    
+    let availableSlots = timeSlots
+    
+    if (selectedDate === today) {
+      // Для сегодняшней даты убираем только явно прошедшее время
+      const currentHour = now.getHours()
+      const currentMinute = now.getMinutes()
+      
+      availableSlots = timeSlots.filter(time => {
+        const [hour, minute] = time.split(':').map(Number)
+        
+        // Если время раньше текущего на час, считаем его недоступным
+        if (hour < currentHour - 1) return false
+        
+        // Если время в том же часе, но минуты прошли, считаем недоступным
+        if (hour === currentHour - 1 && minute < currentMinute) return false
+        
+        return true
+      })
+    }
+    
+    // Если все слоты отфильтровались, показываем хотя бы несколько
+    if (availableSlots.length === 0) {
+      availableSlots = timeSlots.slice(-10) // Последние 10 слотов
+    }
+    
+    // Если выбранное время не существует в доступных слотах, устанавливаем первое доступное
+    if (availableSlots.length > 0 && !availableSlots.includes(selectedTime)) {
+      console.log('Выбранное время не найдено в доступных слотах, устанавливаем:', availableSlots[0])
+      setSelectedTime(availableSlots[0])
+    }
+    
+    console.log('Доступные временные слоты:', availableSlots)
+    console.log('Выбранная дата:', selectedDate)
+    console.log('Сегодня:', today)
+  }, [selectedDate, selectedTime])
+
   const fetchTables = async () => {
     try {
+      console.log('Запрос к API:', `/api/tables?date=${selectedDate}&time=${selectedTime}&duration=${selectedDuration}`)
+      
       const response = await fetch(`/api/tables?date=${selectedDate}&time=${selectedTime}&duration=${selectedDuration}`)
+      
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
+      
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error(`API вернул не JSON: ${contentType}`)
+      }
+      
       const data = await response.json()
       if (!Array.isArray(data)) {
-        throw new Error('API returned non-array data')
+        throw new Error('API вернул не массив данных')
       }
+      
       const tablesData = {}
       data.forEach(table => {
         tablesData[table.id] = {
@@ -79,8 +181,11 @@ function App() {
         }
       })
       setTables(tablesData)
+      console.log('Столы загружены успешно:', tablesData)
+      
     } catch (error) {
       console.error('Ошибка загрузки столов:', error)
+      
       // Fallback данные для тестирования
       const fallbackTables = {
         1: { seats: 4, status: 'available' },
@@ -95,6 +200,7 @@ function App() {
       }
 
       setTables(fallbackTables)
+      console.log('Используются fallback данные для столов')
     }
   }
 
@@ -116,27 +222,49 @@ function App() {
     return availablePhotos[tableNumber] || []
   }
 
-  const loadTablePhotos = () => {
+  const loadTablePhotos = async () => {
     const photos = {}
     const photoIndex = {}
+    
     for (let i = 1; i <= 9; i++) {
       const tablePhotos = []
-      let photoNum = 1
-      // Пытаемся загрузить до 5 фото на стол (можно увеличить лимит при необходимости)
-      for (let j = 1; j <= 5; j++) {
-        // Проверяем, существует ли файл (косвенно, через try/catch Image)
-        const img = new window.Image()
-        img.src = `table-${i}/photo${j}.png`
-        // В реальном проекте лучше сделать fetch HEAD или хранить список файлов на сервере
-        tablePhotos.push(`table-${i}/photo${j}.png`)
-        // Можно добавить проверку на 404, но для простоты добавляем все подряд
+      
+      // Проверяем существование фотографий для каждого стола
+      for (let j = 1; j <= 2; j++) {
+        try {
+          // Создаем Image объект для проверки существования
+          const img = new Image()
+          img.src = `/table-${i}/photo${j}.png`
+          
+          // Ждем загрузки или ошибки
+          await new Promise((resolve, reject) => {
+            img.onload = () => {
+              tablePhotos.push(`/table-${i}/photo${j}.png`)
+              resolve()
+            }
+            img.onerror = () => {
+              // Если файл не найден, просто пропускаем его
+              resolve()
+            }
+            // Таймаут на случай если изображение не загружается
+            setTimeout(resolve, 1000)
+          })
+        } catch (error) {
+          // Игнорируем ошибки и продолжаем
+          console.log(`Ошибка загрузки фото для стола ${i}, фото ${j}:`, error)
+        }
       }
-      // Фильтруем только реально существующие фото (если нужно)
-      photos[i] = tablePhotos.filter((src, idx) => idx === 0 || window.location.origin + '/'+ src)
+      
+      // Используем только реальные фотографии, которые найдены
+      photos[i] = tablePhotos
       photoIndex[i] = 0
     }
+    
     setAvailablePhotos(photos)
     setCurrentPhotoIndex(photoIndex)
+    
+    // Отладочная информация
+    console.log('Загруженные фотографии:', photos)
   }
 
   const nextPhoto = (tableNumber) => {
@@ -201,6 +329,30 @@ function App() {
       nextPhoto(tableNumber)
     } else if (distance < -minSwipeDistance) {
       prevPhoto(tableNumber)
+    }
+  }
+
+  const openFullscreenPhoto = (tableNumber, photoIndex) => {
+    setFullscreenPhoto(tableNumber)
+    setFullscreenPhotoIndex(photoIndex)
+  }
+
+  const closeFullscreenPhoto = () => {
+    setFullscreenPhoto(null)
+    setFullscreenPhotoIndex(0)
+  }
+
+  const nextFullscreenPhoto = () => {
+    const photos = getTablePhotos(fullscreenPhoto)
+    if (photos.length > 1) {
+      setFullscreenPhotoIndex((fullscreenPhotoIndex + 1) % photos.length)
+    }
+  }
+
+  const prevFullscreenPhoto = () => {
+    const photos = getTablePhotos(fullscreenPhoto)
+    if (photos.length > 1) {
+      setFullscreenPhotoIndex(fullscreenPhotoIndex === 0 ? photos.length - 1 : fullscreenPhotoIndex - 1)
     }
   }
 
@@ -279,30 +431,56 @@ function App() {
             value={selectedTime}
             onChange={(e) => setSelectedTime(e.target.value)}
           >
-            {Array.from({length: 29}, (_, i) => {
-              const hour = Math.floor(i / 2) + 12
-              const minute = i % 2 === 0 ? '00' : '30'
-              if (hour >= 27) return null // до 02:30 следующего дня
+            {(() => {
+              const timeSlots = []
               
-              const displayHour = hour >= 24 ? hour - 24 : hour
-              const time = `${displayHour.toString().padStart(2, '0')}:${minute}`
+              // Генерируем временные слоты с 12:00 до 02:00 следующего дня
+              for (let hour = 12; hour <= 26; hour++) {
+                const displayHour = hour >= 24 ? hour - 24 : hour
+                const displayHourStr = displayHour.toString().padStart(2, '0')
+                
+                // Добавляем :00
+                timeSlots.push(`${displayHourStr}:00`)
+                
+                // Добавляем :30 (кроме 02:30, так как работаем до 02:00)
+                if (hour < 26) {
+                  timeSlots.push(`${displayHourStr}:30`)
+                }
+              }
               
-              const selectedDay = new Date(selectedDate).getDay()
-              const isWeekend = selectedDay === 0 || selectedDay === 6
-              
-              // Проверяем рабочие часы
-              if (!isWeekend && displayHour >= 1 && displayHour < 12) return null // будни: 12:00-00:00
-              if (isWeekend && displayHour >= 3 && displayHour < 12) return null // выходные: 12:00-02:00
-              
-              // Проверяем, не прошло ли время для сегодняшней даты
+              // Фильтруем прошедшее время только для сегодняшней даты
               const now = new Date()
-              const selectedDateTime = new Date(`${selectedDate}T${time}`)
-              if (selectedDate === now.toISOString().split('T')[0] && selectedDateTime < now) return null
+              const today = now.toISOString().split('T')[0]
               
-              return { time, sortKey: displayHour === 0 ? -1 : (displayHour === 1 ? -0.5 : hour) }
-            }).filter(Boolean).sort((a, b) => a.sortKey - b.sortKey).map(item => 
-              <option key={item.time} value={item.time}>{item.time}</option>
-            )}
+              let availableSlots = timeSlots
+              
+              if (selectedDate === today) {
+                // Для сегодняшней даты убираем только явно прошедшее время
+                const currentHour = now.getHours()
+                const currentMinute = now.getMinutes()
+                
+                availableSlots = timeSlots.filter(time => {
+                  const [hour, minute] = time.split(':').map(Number)
+                  
+                  // Если время раньше текущего на час, считаем его недоступным
+                  if (hour < currentHour - 1) return false
+                  
+                  // Если время в том же часе, но минуты прошли, считаем недоступным
+                  if (hour === currentHour - 1 && minute < currentMinute) return false
+                  
+                  return true
+                })
+              }
+              
+              // Если все слоты отфильтровались, показываем хотя бы несколько
+              if (availableSlots.length === 0) {
+                availableSlots = timeSlots.slice(-10) // Последние 10 слотов
+              }
+              
+              return availableSlots.map(time => (
+                <option key={time} value={time}>{time}</option>
+              ))
+            })()}
           </select>
           <select 
             className="time-filter" 
@@ -327,7 +505,16 @@ function App() {
             onClick={() => setHoveredTable(hoveredTable === tableNumber ? null : tableNumber)}
           >
             {hoveredTable === tableNumber && (
-              <div className="table-info">
+              <div className="table-info" style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+                <button 
+                  className="close-button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setHoveredTable(null);
+                  }}
+                >
+                  ×
+                </button>
                 {getTablePhotos(tableNumber).length > 0 && (
                   <div 
                     className="photo-carousel"
@@ -345,6 +532,14 @@ function App() {
                           style={{ 
                             transform: `translateX(${(index - (currentPhotoIndex[tableNumber] || 0)) * 100}%)`,
                             transition: carouselDirection[tableNumber] ? 'transform 0.3s ease-in-out' : 'none'
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openFullscreenPhoto(tableNumber, index);
+                          }}
+                          onError={(e) => {
+                            // Скрываем изображение если оно не загрузилось
+                            e.target.style.display = 'none';
                           }}
                         />
                       ))}
@@ -456,32 +651,20 @@ function App() {
               >
                 <option value={2}>2 часа</option>
                 <option value={4} disabled={(() => {
-                  const selectedDay = new Date(selectedDate).getDay()
-                  const isWeekend = selectedDay === 0 || selectedDay === 6
                   const startHour = parseInt(selectedTime.split(':')[0])
                   const endHour = startHour + 4
                   
-                  if (!isWeekend) {
-                    // Будни: работаем до 2:00
-                    return startHour >= 22 || (startHour < 12 && endHour > 2)
-                  } else {
-                    // Выходные: работаем до 4:00
-                    return startHour >= 24 || (startHour < 12 && endHour > 4)
-                  }
+                  // Проверяем, не выходит ли бронирование за пределы рабочего времени
+                  // Работаем до 02:00 следующего дня
+                  return endHour > 26 // 26 = 2:00 следующего дня
                 })()}>4 часа</option>
                 <option value={6} disabled={(() => {
-                  const selectedDay = new Date(selectedDate).getDay()
-                  const isWeekend = selectedDay === 0 || selectedDay === 6
                   const startHour = parseInt(selectedTime.split(':')[0])
                   const endHour = startHour + 6
                   
-                  if (!isWeekend) {
-                    // Будни: работаем до 2:00
-                    return startHour >= 20 || (startHour < 12 && endHour > 2)
-                  } else {
-                    // Выходные: работаем до 4:00
-                    return startHour >= 22 || (startHour < 12 && endHour > 4)
-                  }
+                  // Проверяем, не выходит ли бронирование за пределы рабочего времени
+                  // Работаем до 02:00 следующего дня
+                  return endHour > 26 // 26 = 2:00 следующего дня
                 })()}>6 часов</option>
               </select>
             </div>
@@ -495,8 +678,64 @@ function App() {
           </div>
         </div>
       )}
+      
+      {/* Полноэкранный просмотр фотографий */}
+      {fullscreenPhoto && (
+        <div className="fullscreen-overlay" onClick={closeFullscreenPhoto}>
+          <div className="fullscreen-content" onClick={(e) => e.stopPropagation()}>
+            <button 
+              className="fullscreen-close-button"
+              onClick={closeFullscreenPhoto}
+            >
+              ×
+            </button>
+            
+            {getTablePhotos(fullscreenPhoto).length > 1 && (
+              <>
+                <button 
+                  className="fullscreen-arrow fullscreen-prev"
+                  onClick={prevFullscreenPhoto}
+                >
+                  ‹
+                </button>
+                <button 
+                  className="fullscreen-arrow fullscreen-next"
+                  onClick={nextFullscreenPhoto}
+                >
+                  ›
+                </button>
+                
+                <div className="fullscreen-indicators">
+                  {getTablePhotos(fullscreenPhoto).map((_, index) => (
+                    <div 
+                      key={index}
+                      className={`fullscreen-indicator ${index === fullscreenPhotoIndex ? 'active' : ''}`}
+                      onClick={() => setFullscreenPhotoIndex(index)}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+            
+            <img 
+              src={getTablePhotos(fullscreenPhoto)[fullscreenPhotoIndex]}
+              alt={`Стол ${fullscreenPhoto}`}
+              className="fullscreen-photo"
+              onError={(e) => {
+                // Скрываем изображение если оно не загрузилось
+                e.target.style.display = 'none';
+              }}
+            />
+            
+            <div className="fullscreen-counter">
+              {fullscreenPhotoIndex + 1} / {getTablePhotos(fullscreenPhoto).length}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 export default App
+// /хуйня 12 августа
